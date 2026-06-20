@@ -23,9 +23,12 @@ struct HomeView: View {
                 }
                 .pickerStyle(.segmented)
 
-                if model.mode == .circadian {
+                switch model.mode {
+                case .circadian:
                     CircadianSettingsView(model: model)
-                } else {
+                case .screenSync:
+                    ScreenSyncSettingsView(model: model, screenSync: model.screenSync)
+                default:
                     ContentUnavailablePlaceholder(mode: model.mode)
                 }
 

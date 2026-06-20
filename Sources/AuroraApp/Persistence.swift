@@ -1,13 +1,16 @@
 import Foundation
 import AuroraCore
 import AuroraCircadian
+import AuroraCapture
 
 /// The snapshot of user state we persist across launches.
 struct SavedState: Codable {
     var mode: Mode
     var brightness: Double
     var circadian: CircadianSettings
-    var installationMethod: InstallationMethod?   // optional for forward/back compat
+    var installationMethod: InstallationMethod?       // optional for forward/back compat
+    var screenSyncSubMode: ScreenSyncSubMode?
+    var screenSyncSaturation: Double?
 }
 
 /// Tiny UserDefaults-backed store for `SavedState`.
