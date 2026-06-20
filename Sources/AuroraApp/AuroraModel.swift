@@ -24,6 +24,10 @@ final class AuroraModel: ObservableObject {
     /// Canonical (un-flipped) geometry of the strip, for the layout preview.
     let baseLayout: LEDLayout
 
+    /// Output gamma to compensate the LED response (WS2812 green is bright). Higher
+    /// = warmer colors read as deeper orange. Applied to the hue before brightness.
+    let outputGamma: Double = 2.8
+
     @Published var mode: Mode {
         didSet { engine.setMode(mode); persist() }
     }
@@ -75,9 +79,7 @@ final class AuroraModel: ObservableObject {
         let startBrightness = saved?.brightness ?? 1.0
 
         // Value-captured provider — the render thread never touches shared mutable state.
-        let provider: @Sendable (Date, LEDLayout) -> [RGB] = { date, layout in
-            CircadianMode(settings: settings).frame(at: date, layout: layout)
-        }
+        let provider = AuroraModel.circadianProvider(settings: settings, gamma: 2.8)
         let eng = LightEngine(
             controller: controller,
             providers: [.circadian: provider],
@@ -141,10 +143,28 @@ final class AuroraModel: ObservableObject {
     // MARK: Private
 
     private func makeCircadianProvider() -> @Sendable (Date, LEDLayout) -> [RGB] {
-        let settings = circadianSettings   // value snapshot — immutable in the closure
+        AuroraModel.circadianProvider(settings: circadianSettings, gamma: outputGamma)
+    }
+
+    /// Builds a value-captured (race-free) frame provider that applies the LED
+    /// gamma to the hue, then the time-of-day brightness.
+    private static func circadianProvider(
+        settings: CircadianSettings,
+        gamma: Double
+    ) -> @Sendable (Date, LEDLayout) -> [RGB] {
         return { date, layout in
-            CircadianMode(settings: settings).frame(at: date, layout: layout)
+            let mode = CircadianMode(settings: settings)
+            let color = ColorTemperature.rgb(kelvin: mode.currentKelvin(at: date))
+                .gammaCorrected(gamma)
+                .scaled(by: mode.brightness(at: date))
+            return Array(repeating: color, count: layout.count)
         }
+    }
+
+    /// The final on-strip color for a given Kelvin (gamma applied) — used by the
+    /// settings swatches and schedule graph so they match the strip exactly.
+    func displayColor(kelvin: Double, brightness: Double = 1) -> RGB {
+        ColorTemperature.rgb(kelvin: kelvin).gammaCorrected(outputGamma).scaled(by: brightness)
     }
 
     private func dateFor(hour: Double) -> Date {

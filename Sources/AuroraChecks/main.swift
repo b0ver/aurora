@@ -99,6 +99,16 @@ check(involutive.points.map { [$0.x, $0.y] } == base.points.map { [$0.x, $0.y] }
 check(ControllerCatalog.info(forReply: "SK0127,<config>")?.ledCount == 65, "catalog resolves SK0127 -> 65 LEDs")
 check(ControllerCatalog.info(forReply: "garbage") == nil, "catalog rejects junk reply")
 
+print("Gamma (LED color correction)")
+check(RGB.white.gammaCorrected(2.8) == .white, "gamma preserves white")
+check(RGB.black.gammaCorrected(2.8) == .black, "gamma preserves black")
+let warm = ColorTemperature.rgb(kelvin: 1600)
+let warmG = warm.gammaCorrected(2.8)
+check(warmG.g < warm.g, "gamma lowers the green channel of a warm color")
+let ratioBefore = Double(warm.g) / Double(max(warm.r, 1))
+let ratioAfter = Double(warmG.g) / Double(max(warmG.r, 1))
+check(ratioAfter < ratioBefore, "gamma shifts warm color toward orange (lower green:red ratio)")
+
 print("")
 if failures == 0 {
     print("✅ All checks passed")
