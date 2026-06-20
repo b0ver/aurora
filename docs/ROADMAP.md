@@ -7,15 +7,19 @@ Legend: ✅ done · 🔨 in progress · ⏳ planned
 
 ---
 
-## M0 — Foundation 🔨
+## M0 — Foundation ✅
 **Goal:** repo, docs, buildable multi-module skeleton, CI-able build.
 - ✅ Git repo + `.gitignore` (vendor binary excluded)
 - ✅ Docs: PRD, Architecture, ADRs, reference configs extracted
-- 🔨 Reverse-engineering spike: Skydimo serial protocol → `docs/protocol/`
-- 🔨 Swift package: modules `AuroraCore`, `AuroraDevice`, `AuroraCircadian`,
-  `AuroraEngine`, `AuroraApp`; `swift build` green
-- 🔨 `MenuBarExtra` shell with a mode-switcher (the headline UX) + LED preview
-- ⏳ `Scripts/package_app.sh` → `dist/Aurora.app`
+- ✅ Reverse-engineering spike: **Skydimo serial protocol decoded** →
+  `docs/protocol/skydimo-serial-re.md` (115200 8N1, "Ada" header, `Moni-A`
+  handshake; only RGB-vs-GRB order pending hardware)
+- ✅ Swift package: modules `AuroraCore`, `AuroraDevice`, `AuroraCircadian`,
+  `AuroraEngine`, `AuroraApp`; `swift build` green; `AuroraChecks` harness (14/14)
+- ✅ `MenuBarExtra` shell with a mode-switcher (the headline UX) + live LED preview
+- ✅ `Scripts/package_app.sh` → `dist/Aurora.app`
+- ✅ Real `SkydimoProtocol` packet builder + `SerialLEDController` (termios),
+  byte-exact tested — ready for M2 hardware bring-up
 
 ## M1 — Circadian mode (first real mode) ⏳
 **Goal:** the flagship differentiator, end-to-end on the simulated controller.
