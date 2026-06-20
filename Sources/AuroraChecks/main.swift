@@ -2,6 +2,7 @@ import Foundation
 import AuroraCore
 import AuroraCircadian
 import AuroraDevice
+import AuroraCapture
 
 // Minimal check harness (stands in for XCTest/Swift Testing, which need full
 // Xcode). Run with: swift run AuroraChecks  — exits non-zero on any failure.
@@ -108,6 +109,18 @@ check(warmG.g < warm.g, "gamma lowers the green channel of a warm color")
 let ratioBefore = Double(warm.g) / Double(max(warm.r, 1))
 let ratioAfter = Double(warmG.g) / Double(max(warmG.r, 1))
 check(ratioAfter < ratioBefore, "gamma shifts warm color toward orange (lower green:red ratio)")
+
+print("Screen sync sampler")
+var px = [RGB]()
+for _ in 0..<4 { for x in 0..<4 { px.append(x < 2 ? RGB(r: 255, g: 0, b: 0) : RGB(r: 0, g: 0, b: 255)) } }
+let grid = PixelGrid(width: 4, height: 4, pixels: px)
+let sLayout = LEDLayout.fromLines([2, 2, 2])   // 6 LEDs, W=2 H=2
+let sampled = EdgeSampler.sample(grid: grid, layout: sLayout, subMode: .full, saturation: 1.0)
+check(sampled.count == sLayout.count, "sampler returns one color per LED")
+check(sampled.first!.r > sampled.first!.b, "left LED (x=0) samples the red left side")
+check(sampled.last!.b > sampled.last!.r, "right LED (x=max) samples the blue right side")
+let half = ScreenSyncSubMode.leftHalf.sourceRect
+check(half.x1 == 0.5, "leftHalf source rect covers the left screen half")
 
 print("")
 if failures == 0 {
