@@ -23,8 +23,10 @@ public final class LightEngine: ObservableObject {
     public let controller: LEDController
 
     private let renderQueue = DispatchQueue(label: "com.evgenypopov.aurora.render", qos: .userInitiated)
-    private var timer: DispatchSourceTimer?
+    private var timer: DispatchSourceTimer?          // touched only on renderQueue
     private let interval: TimeInterval
+    private let reconnectEveryTicks: Int
+    private var qReconnectTicks = 0
 
     // Queue-confined state.
     private var providers: [Mode: @Sendable (Date, LEDLayout) -> [RGB]]
@@ -47,6 +49,7 @@ public final class LightEngine: ObservableObject {
         self.qMode = mode
         self.qBrightness = brightness
         self.interval = 1.0 / max(fps, 1)
+        self.reconnectEveryTicks = max(Int(fps), 1)   // retry a dropped connection ~1×/s
         let blank = Array(repeating: RGB.black, count: controller.layout.count)
         self.lastFrame = blank
         self.qLastComputed = blank
@@ -54,29 +57,31 @@ public final class LightEngine: ObservableObject {
     }
 
     public func start() {
-        guard timer == nil else { return }
         setPublished { self.isRunning = true }
-
-        // Connect, then start ticking — both on the serial render queue (serial,
-        // so connect completes before the first tick).
+        // Everything touching `timer`/`controller` is confined to renderQueue
+        // (serial), so the lifecycle is race-free and the guard is atomic.
         renderQueue.async {
+            guard self.timer == nil else { return }
             _ = try? self.controller.connect()
             let connected = self.controller.isConnected
             self.setPublished { self.isConnected = connected }
-        }
 
-        let t = DispatchSource.makeTimerSource(queue: renderQueue)
-        t.schedule(deadline: .now(), repeating: interval, leeway: .milliseconds(4))
-        t.setEventHandler { [weak self] in self?.renderTick() }
-        timer = t
-        t.resume()
+            let t = DispatchSource.makeTimerSource(queue: self.renderQueue)
+            t.schedule(deadline: .now(), repeating: self.interval, leeway: .milliseconds(4))
+            t.setEventHandler { [weak self] in self?.renderTick() }
+            self.timer = t
+            t.resume()
+        }
     }
 
     /// Fully stop the loop (app teardown). For user "pause", use `setPaused`.
     public func stop() {
-        timer?.cancel()
-        timer = nil
         setPublished { self.isRunning = false }
+        renderQueue.async {
+            self.timer?.cancel()
+            self.timer = nil
+            self.controller.disconnect()
+        }
     }
 
     // MARK: Intents (called on main, applied on renderQueue)
@@ -99,6 +104,20 @@ public final class LightEngine: ObservableObject {
     // MARK: Render loop (runs on renderQueue)
 
     private func renderTick() {
+        // If the hardware isn't connected (e.g. the port was busy at launch),
+        // retry ~once per second so the strip recovers instead of staying dark.
+        if !controller.isConnected {
+            qReconnectTicks += 1
+            if qReconnectTicks >= reconnectEveryTicks {
+                qReconnectTicks = 0
+                _ = try? controller.connect()
+                let connected = controller.isConnected
+                setPublished { self.isConnected = connected }
+            }
+        }
+
+        // Note: qLastComputed starts all-black, so pausing or selecting a
+        // provider-less mode before the first live tick holds black until then.
         let frame: [RGB]
         if qPaused {
             frame = qLastComputed
