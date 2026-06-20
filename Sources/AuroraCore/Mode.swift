@@ -30,6 +30,6 @@ public enum Mode: String, CaseIterable, Identifiable, Codable, Sendable {
 
     /// Whether this mode is wired up yet (drives "coming soon" UI states).
     public var isImplemented: Bool {
-        self == .circadian
+        self == .circadian || self == .screenSync
     }
 }

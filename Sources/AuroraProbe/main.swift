@@ -3,6 +3,7 @@ import Darwin
 import AuroraCore
 import AuroraDevice
 import AuroraCircadian
+import AuroraCapture
 
 // AuroraProbe — M2 hardware bring-up CLI.
 //
@@ -176,7 +177,21 @@ case "detect":
         print("⚠︎ no controller detected (quit the native Skydimo app; is it plugged in?)")
     }
 
+case "screencap":
+    // Validates the ScreenCaptureKit path end-to-end (may trigger a Screen
+    // Recording permission prompt). Pumps the main run loop so status updates land.
+    let ss = ScreenSyncController(spatialLayout: .fromLines([17, 31, 17]))
+    ss.start()
+    let deadline = Date().addingTimeInterval(4)
+    while Date() < deadline {
+        RunLoop.main.run(mode: .default, before: Date().addingTimeInterval(0.1))
+    }
+    print("status: \(ss.status)")
+    let nonBlack = ss.currentFrame().contains { $0 != .black }
+    print("received non-black frames: \(nonBlack)")
+    ss.stop()
+
 default:
     print("unknown command: \(command)")
-    print("usage: list | detect | handshake [port] | test [port] [count] [rgb|grb] | circadian [port] [count] [rgb|grb]")
+    print("usage: list | detect | handshake | test | circadian | screencap")
 }

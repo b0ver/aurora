@@ -2,6 +2,7 @@ import SwiftUI
 import AppKit
 import AuroraCore
 import AuroraCircadian
+import AuroraCapture
 
 /// The menu-bar panel — the headline UX: switch modes, override the circadian
 /// schedule, see the live strip, set brightness, pause — all without a window.
@@ -24,6 +25,12 @@ struct MenuBarView: View {
             if model.mode == .circadian {
                 Picker("Override", selection: overrideBinding) {
                     ForEach(CircadianOverride.allCases, id: \.self) { Text($0.title).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+            } else if model.mode == .screenSync {
+                Picker("Region", selection: $model.screenSyncSubMode) {
+                    ForEach(ScreenSyncSubMode.allCases, id: \.self) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()

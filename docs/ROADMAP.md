@@ -48,13 +48,14 @@ Legend: ✅ done · 🔨 in progress · ⏳ planned
 The serial port is **exclusive** — the native Skydimo app must be fully quit
 before Aurora/AuroraProbe can open it.
 
-## M3 — Screen Sync ⏳
+## M3 — Screen Sync ✅ (core)
 **Goal:** core Skydimo parity feature.
-- `ScreenCaptureKit` capture, per-display
-- Edge-zone sampling → per-LED averaging mapped via `ledMap`
-- Sub-modes: Full / Cinema (letterbox) / Top / Bottom / Left / Right halves
-- Temporal smoothing, saturation/brightness controls, capture FPS control
-- Multi-monitor selection
+- ✅ `ScreenCaptureKit` capture (main display), downscaled grid @30fps
+- ✅ Edge-zone sampling → per-LED averaging over the install-corrected spatial layout
+- ✅ Sub-modes: Full / Cinema (letterbox) / Top / Bottom / Left / Right halves
+- ✅ Saturation control; capture status + permission-prompt UX
+- ✅ Verified end-to-end (`AuroraProbe screencap`: capturing, non-black frames)
+- ⏳ Multi-monitor selection, temporal smoothing, capture-FPS control (polish)
 - **LED layout / direction setup screen** (parity with the original's setup step):
   configure routing left→right / top→bottom, start corner, per-side counts —
   seeded from the vendor `lines` (e.g. SK0124 = [14, 26, 14]) and `ledMap`.
