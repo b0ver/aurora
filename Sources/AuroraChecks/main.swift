@@ -3,6 +3,7 @@ import AuroraCore
 import AuroraCircadian
 import AuroraDevice
 import AuroraCapture
+import AuroraAudio
 
 // Minimal check harness (stands in for XCTest/Swift Testing, which need full
 // Xcode). Run with: swift run AuroraChecks  — exits non-zero on any failure.
@@ -121,6 +122,28 @@ check(sampled.first!.r > sampled.first!.b, "left LED (x=0) samples the red left 
 check(sampled.last!.b > sampled.last!.r, "right LED (x=max) samples the blue right side")
 let half = ScreenSyncSubMode.leftHalf.sourceRect
 check(half.x1 == 0.5, "leftHalf source rect covers the left screen half")
+
+print("Audio FFT")
+let analyzer = SpectrumAnalyzer(size: 1024)
+let targetBin = 64
+let sr = 48_000.0
+let freq = sr * Double(targetBin) / 1024.0
+var sine = [Float](repeating: 0, count: 1024)
+for i in 0..<1024 { sine[i] = Float(sin(2 * Double.pi * freq * Double(i) / sr)) }
+let mags = analyzer.magnitudes(sine)
+var peakBin = 0
+var peakVal: Float = 0
+for (i, m) in mags.enumerated() where m > peakVal { peakVal = m; peakBin = i }
+check(abs(peakBin - targetBin) <= 2, "FFT peak at expected bin for a \(Int(freq))Hz tone (got bin \(peakBin))")
+check(peakVal > 0, "FFT produces non-zero magnitude for a tone")
+check((analyzer.magnitudes([Float](repeating: 0, count: 1024)).max() ?? 1) < 0.001, "FFT of silence is ~zero")
+let bands = analyzer.bands(mags, count: 24)
+check(bands.count == 24 && bands.contains { $0 > 0 }, "band grouping yields 24 non-empty bands")
+
+print("RGB HSV")
+check(RGB.hsv(0, 1, 1) == RGB(r: 255, g: 0, b: 0), "hue 0 = red")
+let green = RGB.hsv(1.0 / 3.0, 1, 1)
+check(green.g > green.r && green.g > green.b, "hue 1/3 = green")
 
 print("")
 if failures == 0 {

@@ -5,6 +5,7 @@ import AuroraDevice
 import AuroraCircadian
 import AuroraEngine
 import AuroraCapture
+import AuroraAudio
 
 /// App-level view model (the single source of truth the UI binds to). Wraps the
 /// engine + modes, forwards user edits as value-captured providers (race-free
@@ -15,6 +16,7 @@ final class AuroraModel: ObservableObject {
     /// Main-thread-only circadian instance used for the schedule graph + queries.
     let circadian: CircadianMode
     let screenSync: ScreenSyncController
+    let musicSync: MusicSyncController
     let locationProvider = LocationProvider()
 
     let detectedInfo: ControllerInfo?
@@ -47,6 +49,12 @@ final class AuroraModel: ObservableObject {
     }
     @Published var screenSyncSaturation: Double {
         didSet { screenSync.saturation = screenSyncSaturation; persist() }
+    }
+    @Published var musicMode: MusicMode {
+        didSet { musicSync.mode = musicMode; persist() }
+    }
+    @Published var musicSensitivity: Double {
+        didSet { musicSync.sensitivity = musicSensitivity; persist() }
     }
     @Published var previewHour: Double? {
         didSet { engine.setPreviewTime(previewHour.map(dateFor(hour:))) }
@@ -82,14 +90,20 @@ final class AuroraModel: ObservableObject {
         let ss = ScreenSyncController(spatialLayout: spatial, subMode: subMode, saturation: saturation)
         self.screenSync = ss
 
+        let musicModeStart = saved?.musicMode ?? .spectrum
+        let musicSens = saved?.musicSensitivity ?? 1.0
+        let ms = MusicSyncController(mode: musicModeStart, sensitivity: musicSens)
+        self.musicSync = ms
+
         let startMode = saved?.mode ?? .circadian
         let startBrightness = saved?.brightness ?? 1.0
 
         let circadianProvider = AuroraModel.circadianProvider(settings: settings, gamma: 2.8)
         let screenProvider: @Sendable (Date, LEDLayout) -> [RGB] = { _, _ in ss.currentFrame() }
+        let musicProvider: @Sendable (Date, LEDLayout) -> [RGB] = { _, layout in ms.currentFrame(layout) }
         let eng = LightEngine(
             controller: controller,
-            providers: [.circadian: circadianProvider, .screenSync: screenProvider],
+            providers: [.circadian: circadianProvider, .screenSync: screenProvider, .musicSync: musicProvider],
             mode: startMode,
             brightness: startBrightness,
             fps: 30
@@ -102,6 +116,8 @@ final class AuroraModel: ObservableObject {
         self.installationMethod = method
         self.screenSyncSubMode = subMode
         self.screenSyncSaturation = saturation
+        self.musicMode = musicModeStart
+        self.musicSensitivity = musicSens
 
         eng.$lastFrame.assign(to: &$lastFrame)
         eng.$isRunning.assign(to: &$isRunning)
@@ -149,7 +165,10 @@ final class AuroraModel: ObservableObject {
 
     private func updateCaptureState() {
         if mode == .screenSync { screenSync.start() } else { screenSync.stop() }
+        if mode == .musicSync { musicSync.start() } else { musicSync.stop() }
     }
+
+    func startMusicCapture() { musicSync.start() }
 
     private func makeCircadianProvider() -> @Sendable (Date, LEDLayout) -> [RGB] {
         AuroraModel.circadianProvider(settings: circadianSettings, gamma: outputGamma)
@@ -180,7 +199,9 @@ final class AuroraModel: ObservableObject {
             circadian: circadianSettings,
             installationMethod: installationMethod,
             screenSyncSubMode: screenSyncSubMode,
-            screenSyncSaturation: screenSyncSaturation
+            screenSyncSaturation: screenSyncSaturation,
+            musicMode: musicMode,
+            musicSensitivity: musicSensitivity
         ))
     }
 }

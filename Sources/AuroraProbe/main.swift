@@ -4,6 +4,7 @@ import AuroraCore
 import AuroraDevice
 import AuroraCircadian
 import AuroraCapture
+import AuroraAudio
 
 // AuroraProbe — M2 hardware bring-up CLI.
 //
@@ -191,7 +192,23 @@ case "screencap":
     print("received non-black frames: \(nonBlack)")
     ss.stop()
 
+case "audiocap":
+    // Validates the system-audio + FFT path (play music to see energy > 0).
+    let ms = MusicSyncController(mode: .spectrum, sensitivity: 1.0)
+    ms.start()
+    let layout = LEDLayout.fromLines([17, 31, 17])
+    var maxEnergy = 0.0
+    let deadline = Date().addingTimeInterval(4)
+    while Date() < deadline {
+        RunLoop.main.run(mode: .default, before: Date().addingTimeInterval(0.1))
+        _ = ms.currentFrame(layout)
+        maxEnergy = max(maxEnergy, ms.currentEnergy())
+    }
+    print("status: \(ms.status)")
+    print("max energy over 4s: \(String(format: "%.4f", maxEnergy)) (0 if silent)")
+    ms.stop()
+
 default:
     print("unknown command: \(command)")
-    print("usage: list | detect | handshake | test | circadian | screencap")
+    print("usage: list | detect | handshake | test | circadian | screencap | audiocap")
 }

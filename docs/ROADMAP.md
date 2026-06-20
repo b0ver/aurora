@@ -61,12 +61,14 @@ before Aurora/AuroraProbe can open it.
   seeded from the vendor `lines` (e.g. SK0124 = [14, 26, 14]) and `ledMap`.
   Lives in Settings, not the menu bar. *(Owner requested; screenshot to follow.)*
 
-## M4 — Music Sync ⏳
+## M4 — Music Sync ✅ (core)
 **Goal:** audio-reactive lighting.
-- System-audio loopback + mic capture; source picker
-- `vDSP` FFT → frequency bands → `key_music` channel mapping
-- Modes 1–4 (peak/spectrum/flow/mood), sensitivity & smoothing
-- Beat detection
+- ✅ System-audio (loopback) capture via ScreenCaptureKit audio (no virtual device)
+- ✅ `vDSP` real-FFT spectrum → log-spaced bands (deterministic sine test passes)
+- ✅ Modes: Spectrum / Pulse / Level / Mood, sensitivity + attack-decay smoothing
+- ✅ Beat detection drives Pulse
+- ✅ FFT verified (`AuroraChecks`); capture path mirrors verified screen-capture path
+- ⏳ Mic source option, per-`key_music` channel mapping, more modes (polish)
 
 ## M5 — Scenes, schedules, polish ⏳
 **Goal:** delight + automation.
