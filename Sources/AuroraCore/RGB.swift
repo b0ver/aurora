@@ -26,6 +26,18 @@ public struct RGB: Equatable, Hashable, Sendable {
         )
     }
 
+    /// Per-channel gamma correction `out = (in/255)^gamma`. Compensates for the
+    /// LED's response (WS2812 green is very bright), so warm colors read as true
+    /// orange/amber instead of yellow. Apply to the full-intensity hue *before*
+    /// brightness scaling.
+    public func gammaCorrected(_ gamma: Double) -> RGB {
+        guard gamma > 0, gamma != 1 else { return self }
+        func f(_ v: UInt8) -> UInt8 {
+            UInt8((pow(Double(v) / 255, gamma) * 255).rounded())
+        }
+        return RGB(r: f(r), g: f(g), b: f(b))
+    }
+
     /// Linear blend toward `other` by `t` (0...1).
     public func blended(to other: RGB, t: Double) -> RGB {
         let t = max(0, min(1, t))

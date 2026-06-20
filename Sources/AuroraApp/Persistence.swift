@@ -7,6 +7,7 @@ struct SavedState: Codable {
     var mode: Mode
     var brightness: Double
     var circadian: CircadianSettings
+    var installationMethod: InstallationMethod?   // optional for forward/back compat
 }
 
 /// Tiny UserDefaults-backed store for `SavedState`.

@@ -18,14 +18,19 @@ struct CircadianSettingsView: View {
             ScheduleGraphView(
                 points: model.todaySchedule(),
                 nowHour: model.nowHour,
+                gamma: model.outputGamma,
                 previewHour: $model.previewHour
             )
 
             GroupBox("Color temperature") {
-                VStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: 8) {
                     kelvinSlider("Day", \.dayKelvin, 4000...7000)
                     kelvinSlider("Sunset", \.sunsetKelvin, 2500...4500)
-                    kelvinSlider("Night", \.nightKelvin, 1500...2700)
+                    kelvinSlider("Night", \.nightKelvin, 1200...3500)
+                    Text("Lower Night = warmer / more orange (1200K ≈ amber, 1900K ≈ orange, 2700K ≈ warm yellow). Tap **Night** above to preview it on the strip.")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(6)
             }
@@ -76,17 +81,21 @@ struct CircadianSettingsView: View {
         )
     }
 
-    @ViewBuilder
     private func kelvinSlider(
         _ label: String,
         _ keyPath: WritableKeyPath<CircadianSettings, Double>,
         _ range: ClosedRange<Double>
     ) -> some View {
-        HStack {
-            Text(label).frame(width: 60, alignment: .leading)
+        let kelvin = model.circadianSettings[keyPath: keyPath]
+        return HStack(spacing: 8) {
+            Text(label).frame(width: 52, alignment: .leading)
+            RoundedRectangle(cornerRadius: 4)
+                .fill(model.displayColor(kelvin: kelvin).swiftUIColor)
+                .frame(width: 24, height: 16)
+                .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(.white.opacity(0.15)))
             Slider(value: bind(keyPath), in: range)
-            Text("\(Int(model.circadianSettings[keyPath: keyPath]))K")
-                .frame(width: 56, alignment: .trailing)
+            Text("\(Int(kelvin))K")
+                .frame(width: 50, alignment: .trailing)
                 .monospacedDigit()
         }
     }
@@ -97,6 +106,7 @@ struct CircadianSettingsView: View {
 struct ScheduleGraphView: View {
     let points: [SchedulePoint]
     let nowHour: Double
+    let gamma: Double
     @Binding var previewHour: Double?
 
     var body: some View {
@@ -109,7 +119,7 @@ struct ScheduleGraphView: View {
                     let p = points[i]
                     let x = CGFloat(p.hour / 24) * w
                     let nextX = i + 1 < points.count ? CGFloat(points[i + 1].hour / 24) * w : w
-                    let color = ColorTemperature.rgb(kelvin: p.kelvin).scaled(by: p.brightness).swiftUIColor
+                    let color = ColorTemperature.rgb(kelvin: p.kelvin).gammaCorrected(gamma).scaled(by: p.brightness).swiftUIColor
                     ctx.fill(Path(CGRect(x: x, y: 0, width: max(nextX - x, 1), height: h)), with: .color(color))
                 }
 
