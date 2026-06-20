@@ -15,6 +15,25 @@ public struct RGB: Equatable, Hashable, Sendable {
     public static let black = RGB(r: 0, g: 0, b: 0)
     public static let white = RGB(r: 255, g: 255, b: 255)
 
+    /// Build from HSV (each 0...1). Used by audio-reactive modes.
+    public static func hsv(_ h: Double, _ s: Double, _ v: Double) -> RGB {
+        let h6 = (h.truncatingRemainder(dividingBy: 1) + 1).truncatingRemainder(dividingBy: 1) * 6
+        let c = v * s
+        let x = c * (1 - abs(h6.truncatingRemainder(dividingBy: 2) - 1))
+        let m = v - c
+        let (r, g, b): (Double, Double, Double)
+        switch Int(h6) {
+        case 0: (r, g, b) = (c, x, 0)
+        case 1: (r, g, b) = (x, c, 0)
+        case 2: (r, g, b) = (0, c, x)
+        case 3: (r, g, b) = (0, x, c)
+        case 4: (r, g, b) = (x, 0, c)
+        default: (r, g, b) = (c, 0, x)
+        }
+        func u(_ d: Double) -> UInt8 { UInt8(max(0, min(255, ((d + m) * 255).rounded()))) }
+        return RGB(r: u(r), g: u(g), b: u(b))
+    }
+
     /// Scale brightness by `factor` (0...1). Linear in 8-bit space (gamma handled
     /// separately in the frame pipeline).
     public func scaled(by factor: Double) -> RGB {

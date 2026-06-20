@@ -2,6 +2,7 @@ import Foundation
 import AuroraCore
 import AuroraCircadian
 import AuroraCapture
+import AuroraAudio
 
 /// The snapshot of user state we persist across launches.
 struct SavedState: Codable {
@@ -11,6 +12,8 @@ struct SavedState: Codable {
     var installationMethod: InstallationMethod?       // optional for forward/back compat
     var screenSyncSubMode: ScreenSyncSubMode?
     var screenSyncSaturation: Double?
+    var musicMode: MusicMode?
+    var musicSensitivity: Double?
 }
 
 /// Tiny UserDefaults-backed store for `SavedState`.
