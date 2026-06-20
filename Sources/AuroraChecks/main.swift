@@ -144,6 +144,8 @@ print("RGB HSV")
 check(RGB.hsv(0, 1, 1) == RGB(r: 255, g: 0, b: 0), "hue 0 = red")
 let green = RGB.hsv(1.0 / 3.0, 1, 1)
 check(green.g > green.r && green.g > green.b, "hue 1/3 = green")
+let rgbRoundTrip = try! JSONDecoder().decode(RGB.self, from: try! JSONEncoder().encode(RGB(r: 12, g: 34, b: 56)))
+check(rgbRoundTrip == RGB(r: 12, g: 34, b: 56), "RGB survives a JSON round-trip (static color persistence)")
 
 print("")
 if failures == 0 {

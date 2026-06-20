@@ -114,7 +114,14 @@ public final class SerialLEDController: LEDController {
     public func render(_ frame: [RGB]) {
         guard isConnected else { return }
         let data = SkydimoProtocol.frame(frame, order: channelOrder)
-        _ = try? writeData(data)
+        do {
+            _ = try writeData(data)
+        } catch {
+            // A hard write failure (e.g. the device was unplugged) — tear down so
+            // the engine's reconnect loop re-opens the port. EAGAIN back-pressure
+            // is absorbed inside writeData and never reaches here.
+            disconnect()
+        }
     }
 
     @discardableResult

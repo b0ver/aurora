@@ -22,6 +22,7 @@ public final class ScreenSyncController: ObservableObject, @unchecked Sendable {
     private var _saturation: Double
     private var _latest: [RGB]
     private let capturer = ScreenCapturer()
+    private var lifecycleTask: Task<Void, Never>?
 
     public init(spatialLayout: LEDLayout, subMode: ScreenSyncSubMode = .full, saturation: Double = 1.15) {
         _layout = spatialLayout
@@ -54,10 +55,13 @@ public final class ScreenSyncController: ObservableObject, @unchecked Sendable {
 
     // MARK: Lifecycle
 
+    /// Lifecycle ops are chained (each awaits the previous) so a rapid
+    /// start→stop→start can't reorder and leak the capture stream.
     public func start() {
-        guard status == .idle || status == .needsPermission || isFailed(status) else { return }
         setStatus(.starting)
-        Task { [weak self] in
+        let prev = lifecycleTask
+        lifecycleTask = Task { [weak self] in
+            await prev?.value
             guard let self else { return }
             do {
                 try await self.capturer.start()
@@ -70,7 +74,9 @@ public final class ScreenSyncController: ObservableObject, @unchecked Sendable {
     }
 
     public func stop() {
-        Task { [weak self] in
+        let prev = lifecycleTask
+        lifecycleTask = Task { [weak self] in
+            await prev?.value
             await self?.capturer.stop()
             self?.setStatus(.idle)
         }
@@ -97,11 +103,6 @@ public final class ScreenSyncController: ObservableObject, @unchecked Sendable {
         lock.lock()
         if sampled.count == _latest.count { _latest = sampled }
         lock.unlock()
-    }
-
-    private func isFailed(_ s: Status) -> Bool {
-        if case .failed = s { return true }
-        return false
     }
 
     private func setStatus(_ s: Status) {

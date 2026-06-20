@@ -8,7 +8,8 @@ Aurora is an independent, native macOS reimplementation inspired by the Skydimo
 desktop app, built for people who want a faster, cleaner, menu-bar-first
 experience and modes the original lacks (notably f.lux-style circadian lighting).
 
-> Status: **early development (M0 — foundation)**. See [docs/ROADMAP.md](docs/ROADMAP.md).
+> Status: **all four modes working** (M0–M5 core) on real hardware
+> (Skydimo **SK0127**, 65 LEDs, USB-serial). See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Why Aurora
 
@@ -22,10 +23,14 @@ Aurora fixes both and puts UX/UI first.
 
 | Mode | What it does | Status |
 |---|---|---|
-| 🌅 Circadian | Color temperature follows your local sun cycle (f.lux-style) | In progress (first slice) |
-| 🖥️ Screen Sync | Mirrors screen-edge colors to the LEDs | Planned |
-| 🎵 Music Sync | FFT spectrum of system/mic audio drives the LEDs | Planned |
-| 🎨 Static / Scenes | Single color, gradients, saved presets | Planned |
+| 🌅 Circadian | Color temperature follows your local sun cycle (f.lux-style), with Auto/Day/Night override, a 24h schedule graph + time scrubber, and gamma-corrected warm tones | ✅ |
+| 🖥️ Screen Sync | Mirrors screen-edge colors to the LEDs (ScreenCaptureKit), with Full/Cinema/Top/Bottom/Left/Right regions + saturation | ✅ |
+| 🎵 Music Sync | vDSP FFT of system audio drives the LEDs — Spectrum / Pulse / Level / Mood, with sensitivity + beat detection | ✅ |
+| 🎨 Static / Scene | Custom color picker + 12 presets | ✅ |
+
+Plus: **menu-bar mode switching**, installation-direction setup, launch-at-login,
+and a live on-screen LED preview. Screen Sync and Music Sync request **Screen
+Recording** permission on first use (the latter uses it for system-audio loopback).
 
 ## Tech stack
 
