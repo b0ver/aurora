@@ -26,5 +26,7 @@
     <!-- Permission rationale strings (screen capture / mic land in M3/M4). -->
     <key>NSMicrophoneUsageDescription</key>
     <string>Aurora uses the microphone for music-reactive lighting.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Aurora uses your location to follow the local sunrise/sunset for circadian lighting.</string>
 </dict>
 </plist>
