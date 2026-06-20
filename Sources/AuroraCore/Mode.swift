@@ -29,7 +29,6 @@ public enum Mode: String, CaseIterable, Identifiable, Codable, Sendable {
     }
 
     /// Whether this mode is wired up yet (drives "coming soon" UI states).
-    public var isImplemented: Bool {
-        self != .staticColor
-    }
+    /// All modes are now implemented.
+    public var isImplemented: Bool { true }
 }

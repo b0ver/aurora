@@ -70,12 +70,14 @@ before Aurora/AuroraProbe can open it.
 - ✅ FFT verified (`AuroraChecks`); capture path mirrors verified screen-capture path
 - ⏳ Mic source option, per-`key_music` channel mapping, more modes (polish)
 
-## M5 — Scenes, schedules, polish ⏳
+## M5 — Scenes, schedules, polish 🔨
 **Goal:** delight + automation.
-- Static colors, gradients, saved scenes/presets
-- Time/automation rules (e.g. circadian by day → screen-sync in the evening)
-- Global hotkeys for modes; launch-at-login; per-mode persistence
-- Onboarding, empty/permission states, accessibility pass
+- ✅ Static / Scene mode: custom color picker + 12 presets
+- ✅ Launch-at-login (SMAppService) toggle
+- ✅ Per-mode persistence; permission/empty states for capture modes
+- ⏳ Gradients, saved multi-color scenes
+- ⏳ Time/automation rules (e.g. circadian by day → screen-sync in the evening)
+- ⏳ Global hotkeys for modes; onboarding; accessibility pass
 
 ## M6 — Release engineering ⏳
 **Goal:** shippable.
