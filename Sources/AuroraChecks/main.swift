@@ -54,6 +54,28 @@ let mode = CircadianMode(settings: CircadianSettings(latitude: 55.75, longitude:
 check(mode.currentKelvin(at: utc(2026, 6, 21, 9)) > mode.currentKelvin(at: utc(2026, 12, 21, 0)), "daylight cooler than night")
 check(mode.frame(at: Date(), layout: .strip(count: 54)).count == 54, "frame length matches layout count")
 
+print("Circadian override")
+var dayOverride = CircadianSettings(latitude: 55.75, longitude: 37.62)
+dayOverride.override = .day
+let dayMode = CircadianMode(settings: dayOverride)
+check(dayMode.currentKelvin(at: utc(2026, 1, 1, 0)) == dayOverride.dayKelvin, "override=day forces day Kelvin even at midnight")
+check(dayMode.brightness(at: utc(2026, 1, 1, 0)) == 1, "override=day forces full brightness")
+var nightOverride = CircadianSettings(latitude: 55.75, longitude: 37.62)
+nightOverride.override = .night
+let nightMode = CircadianMode(settings: nightOverride)
+check(nightMode.currentKelvin(at: utc(2026, 6, 21, 12)) == nightOverride.nightKelvin, "override=night forces night Kelvin even at noon")
+
+print("Schedule preview")
+let schedule = mode.daySchedule(on: utc(2026, 6, 21, 12), samples: 96)
+check(schedule.count == 96, "daySchedule returns the requested sample count")
+check(schedule.first!.hour == 0 && schedule.last!.hour < 24, "schedule hours span 0..<24")
+
+print("Persistence")
+let saved = CircadianSettings(latitude: 1.5, longitude: 2.5, override: .night)
+let roundTrip = try! JSONDecoder().decode(CircadianSettings.self, from: try! JSONEncoder().encode(saved))
+check(roundTrip == saved, "CircadianSettings survives a JSON round-trip")
+check((try? JSONDecoder().decode(Mode.self, from: try! JSONEncoder().encode(Mode.circadian))) == .circadian, "Mode is Codable")
+
 print("")
 if failures == 0 {
     print("✅ All checks passed")

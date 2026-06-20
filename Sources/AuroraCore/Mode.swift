@@ -1,7 +1,7 @@
 import Foundation
 
 /// The top-level lighting mode the user selects (from the menu bar).
-public enum Mode: String, CaseIterable, Identifiable, Sendable {
+public enum Mode: String, CaseIterable, Identifiable, Codable, Sendable {
     case circadian
     case screenSync
     case musicSync
