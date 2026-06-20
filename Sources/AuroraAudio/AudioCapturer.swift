@@ -13,6 +13,7 @@ final class AudioCapturer: NSObject, SCStreamOutput {
     private let queue = DispatchQueue(label: "com.evgenypopov.aurora.audio", qos: .userInitiated)
 
     func start() async throws {
+        guard stream == nil else { return }
         let content = try await SCShareableContent.current
         guard let display = content.displays.first else { throw AudioCaptureError.noDisplay }
 

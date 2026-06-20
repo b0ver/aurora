@@ -28,6 +28,7 @@ final class AuroraModel: ObservableObject {
         didSet {
             engine.setMode(mode)
             updateCaptureState()
+            if previewHour != nil { previewHour = nil }   // drop any stale circadian scrub time
             persist()
         }
     }
