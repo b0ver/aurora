@@ -1,0 +1,46 @@
+﻿{
+  "groups": [
+    {
+      "id": "id.effect.screenSync",
+      "order": 0,
+      "name": "同屏模式",
+      "desc": "同屏模式",
+      "defaultEffect": "id.effect.screenSync.fullScreen"
+    },
+    {
+      "id": "id.effect.dynamicMusic",
+      "order": 1,
+      "name": "音乐模式",
+      "desc": "让音乐动起来！",
+      "defaultEffect": "id.effect.dynamicMusic.peakValues_1"
+    },
+    {
+      "id": "id.effect.singleColor",
+      "order": 3,
+      "name": "单色模式",
+      "desc": "设置灯带颜色",
+      "defaultEffect": "id.effect.singleColor.singleColor1"
+    },
+    {
+      "id": "id.effect.colorful",
+      "order": 2,
+      "desc": "幻彩模式",
+      "name": "幻彩模式",
+      "defaultEffect": "id.effect.colorful.flowingEffect"
+    },
+    {
+      "id": "id.effect.graphics",
+      "order": 4,
+      "desc": "图形模式",
+      "name": "图形模式",
+      "defaultEffect": "id.effect.graphics.graphics"
+    },
+    {
+      "id": "id.effect.marquee",
+      "order": 5,
+      "name": "跑马灯模式",
+      "desc": "跑马灯模式",
+      "defaultEffect": "id.effect.marquee.marquee"
+    }
+  ]
+}

@@ -1,0 +1,251 @@
+{
+    "SK0100" : {
+        "icon" : "images/productIcons/SK01.jpg",
+        "image" : "images/products/SK01.jpg",
+        "nbLeds" : 0,
+        "lines" : [],
+        "brightness" : 0.8,
+        "adjustableLength":3
+    },
+    "SK0121" : {
+        "icon" : "images/productIcons/SK01.jpg",
+        "image" : "images/products/SK01.jpg",
+        "nbLeds" : 51,
+        "lines" : [13, 25, 13],
+        "brightness" : 0.8
+    },
+    "SK0124" : {
+        "icon" : "images/productIcons/SK01.jpg",
+        "image" : "images/products/SK01.jpg",
+        "nbLeds" : 54,
+        "lines" : [14, 26, 14],
+        "brightness" : 0.8
+    },
+    "SK0127" : {
+        "icon" : "images/productIcons/SK01.jpg",
+        "image" : "images/products/SK01.jpg",
+        "nbLeds" : 65,
+        "lines" : [17, 31, 17],
+        "brightness" : 0.8
+    },
+    "SK0132" : {
+        "icon" : "images/productIcons/SK01.jpg",
+        "image" : "images/products/SK01.jpg",
+        "nbLeds" : 77,
+        "lines" : [20, 37, 20],
+        "brightness" : 0.8
+    },
+    "SK0134" : {
+        "icon" : "images/productIcons/SK01.jpg",
+        "image" : "images/products/SK01.jpg",
+        "nbLeds" : 71,
+        "lines" : [15, 41, 15],
+        "brightness" : 0.8
+    },
+    "SK0149" : {
+        "icon" : "images/productIcons/SK01.jpg",
+        "image" : "images/products/SK01.jpg",
+        "nbLeds": 107,
+        "lines" : [19, 69, 19],
+        "brightness" : 0.8
+    },
+    "SK0L21" : {
+        "icon" : "images/productIcons/SK0L.jpg",
+        "image" : "images/products/SK0L.jpg",
+        "nbLeds" : 76,
+        "lines" : [13, 25, 13, 25],
+        "brightness" : 0.8
+    },
+    "SK0L24" : {
+        "icon" : "images/productIcons/SK0L.jpg",
+        "image" : "images/products/SK0L.jpg",
+        "nbLeds" : 80,
+        "lines" : [14, 26, 14, 26],
+        "brightness" : 0.8
+    },
+    "SK0L27" : {
+        "icon" : "images/productIcons/SK0L.jpg",
+        "image" : "images/products/SK0L.jpg",
+        "nbLeds" : 96,
+        "lines" : [17, 31, 17, 31],
+        "brightness" : 0.8
+    },
+    "SK0L32" : {
+        "icon" : "images/productIcons/SK0L.jpg",
+        "image" : "images/products/SK0L.jpg",
+        "nbLeds" : 114,
+        "lines" : [20, 37, 20, 37],
+        "brightness" : 0.8
+    },
+    "SK0L34" : {
+        "icon" : "images/productIcons/SK0L.jpg",
+        "image" : "images/products/SK0L.jpg",
+        "nbLeds" : 112,
+        "lines" : [15, 41, 15, 41],
+        "brightness" : 0.8
+    },
+    "SK0201" : {
+        "icon" : "images/productIcons/SK02.jpg",
+        "image" : "images/products/SK02.jpg",
+        "nbLeds" : 40,
+        "lines" : [20, 20],
+        "brightness" : 0.8
+    },
+    "SK0202" : {
+        "icon" : "images/productIcons/SK02.jpg",
+        "image" : "images/products/SK02.jpg",
+        "nbLeds" : 60,
+        "lines" : [30, 30],
+        "brightness" : 0.8
+    },
+    "SK0204" : {
+        "icon" : "images/productIcons/SK02.jpg",
+        "image" : "images/products/SK02.jpg",
+        "nbLeds" : 50,
+        "lines" : [25, 25],
+        "brightness" : 0.8
+    },
+
+    "SK0400" : {
+        "icon" : "images/productIcons/SK04.jpg",
+        "image" : "images/products/SK04.jpg",
+        "nbLeds" : 0,
+        "lines" : [0],
+        "brightness" : 0.8,
+        "adjustableLength": 1
+    },
+
+    "SK0401" : {
+        "icon" : "images/productIcons/SK04.jpg",
+        "image" : "images/products/SK04.jpg",
+        "nbLeds" : 0,
+        "lines" : [0],
+        "brightness" : 0.8
+    },
+    "SK0410" : {
+        "icon" : "images/productIcons/SK0410.jpg",
+        "image" : "images/products/SK0410.jpg",
+        "nbLeds" : 290,
+        "lines" : [290],
+        "brightness" : 0.8,
+        "adjustableLength": 1,
+        "maxLedCount": 290
+    },
+  "SK0301": {
+    "icon": "images/productIcons/SK03.jpg",
+    "image": "images/productIcons/SK03.jpg",
+    "nbLeds": 16,
+    "lines": [ 16 ],
+    "brightness": 1,
+    "adjustableLength": 1,
+    "colorPickerArea" : 1
+
+  },
+    "SK0901" : {
+        "icon" : "images/productIcons/SK09.jpg",
+        "image" : "images/productIcons/SK09.jpg",
+        "nbLeds" : 14,
+        "lines" : [14],
+        "brightness" : 0.8
+    },
+    "SK0801" : {
+        "icon" : "images/productIcons/SK08.jpg",
+        "image" : "images/productIcons/SK08.jpg",
+        "nbLeds" : 2,
+        "lines" : [2],
+        "brightness" : 0.8
+    },
+    "SK0802" : {
+        "icon" : "images/productIcons/SK0802.jpg",
+        "image" : "images/productIcons/SK080201.jpg",
+        "nbLeds" : 18,
+        "lines" : [18],
+        "brightness" : 0.8
+    },
+    "SK0E01" : {
+        "icon" : "images/productIcons/SK0E.jpg",
+        "image" : "images/productIcons/SK0E.jpg",
+        "nbLeds" : 16,
+        "lines" : [16],
+        "brightness" : 0.8
+    },
+    "SK0F01" : {
+        "icon" : "images/productIcons/SK0F.jpg",
+        "image" : "images/products/SK0F.jpg",
+        "nbLeds" : 58,
+        "lines" : [58],
+        "brightness" : 0.8
+    },
+    "SK0H01" : {
+        "icon" : "images/productIcons/SK0H.png",
+        "image" : "images/products/SK0H.jpg",
+        "nbLeds" : 2,
+        "lines" : [2],
+        "brightness" : 0.8
+    },
+    "SK0I01": {
+      "icon": "images/productIcons/SK0I.jpg",
+      "image": "images/products/SK0I.jpg",
+      "nbLeds": 32,
+      "lines": [ 32 ],
+      "brightness": 0.8
+    },
+    "SK0J01" : {
+        "icon" : "images/productIcons/SK0J01.jpg",
+        "image" : "images/products/SK0J01.jpg",
+        "nbLeds" : 120,
+        "lines" : [120],
+        "brightness" : 0.8
+    },
+    "SK0J02" : {
+        "icon" : "images/productIcons/SK0J02.jpg",
+        "image" : "images/products/SK0J02.jpg",
+        "nbLeds" : 114,
+        "lines" : [114],
+        "brightness" : 0.5,
+        "ledPerUnit" : 19,
+        "maxBrightness" : 0.5
+    },
+    "SK0K01" : {
+        "icon" : "images/productIcons/SK0K.jpg",
+        "image" : "images/productIcons/SK0K.jpg",
+        "nbLeds" : 120,
+        "lines" : [120],
+        "brightness" : 0.8
+    },
+    "SKA124" : {
+        "icon" : "images/productIcons/SKA1.jpg",
+        "image" : "images/productIcons/SKA1.jpg",
+        "nbLeds" : 70,
+        "lines" : [70],
+        "brightness" : 0.8
+    },
+    "SKA127" : {
+       "icon" : "images/productIcons/SKA1.jpg",
+        "image" : "images/productIcons/SKA1.jpg",
+        "nbLeds" : 81,
+        "lines" : [81],
+        "brightness" : 0.8
+    },
+    "SKA132" : {
+        "icon" : "images/productIcons/SKA1.jpg",
+        "image" : "images/productIcons/SKA1.jpg",
+        "nbLeds" : 95,
+        "lines" : [95],
+        "brightness" : 0.8
+    },
+    "SKA134" : {
+        "icon" : "images/productIcons/SKA1.jpg",
+        "image" : "images/productIcons/SKA1.jpg",
+        "nbLeds" : 95,
+        "lines" : [95],
+        "brightness" : 0.8
+    },
+    "SK0N03" : {
+        "icon" : "images/productIcons/SK0N03.jpg",
+        "image" : "images/productIcons/SK0N03.jpg",
+        "nbLeds" : 253,
+        "lines" : [253],
+        "brightness" : 0.8
+    }
+}

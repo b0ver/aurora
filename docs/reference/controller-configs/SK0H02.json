@@ -1,0 +1,36 @@
+{
+    "ledMap": [
+        {
+            "id": 1,
+            "x": 0,
+            "y": 19
+        },
+        {
+            "id": 2,
+            "x": 1,
+            "y": 19
+        },
+        {
+            "id": 3,
+            "x": 2,
+            "y": 19
+        },
+        {
+            "id": 4,
+            "x": 3,
+            "y": 19
+        }
+    ],
+    "key_music": [
+        {
+            "id": 0,
+            "start": 1,
+            "stop": 0,
+            "direction": 0
+        }
+    ],
+    "screenHeight": 4,
+    "key_num": 4,
+    "screenWidth": 20,
+    "key_space": 5
+}

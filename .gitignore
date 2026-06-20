@@ -1,0 +1,27 @@
+# --- Reference: original vendor app (3rd-party binary, NOT ours, ~100MB) ---
+SkyDimo.app/
+
+# --- macOS ---
+.DS_Store
+**/.DS_Store
+
+# --- Swift / SwiftPM ---
+.build/
+.swiftpm/
+Package.resolved
+DerivedData/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+
+# --- Build output (packaged app bundle is a build artifact) ---
+/build/
+/dist/
+Aurora.app/
+
+# --- Secrets / local env ---
+.env
+*.local
+
+# --- Editor ---
+.idea/
+.vscode/

@@ -1,0 +1,69 @@
+# Aurora — Roadmap
+
+Milestone-based, trunk-friendly. Each milestone is a vertical slice that builds
+and is mergeable to `main`. Branch naming: `feat/<milestone>-<slug>`.
+
+Legend: ✅ done · 🔨 in progress · ⏳ planned
+
+---
+
+## M0 — Foundation 🔨
+**Goal:** repo, docs, buildable multi-module skeleton, CI-able build.
+- ✅ Git repo + `.gitignore` (vendor binary excluded)
+- ✅ Docs: PRD, Architecture, ADRs, reference configs extracted
+- 🔨 Reverse-engineering spike: Skydimo serial protocol → `docs/protocol/`
+- 🔨 Swift package: modules `AuroraCore`, `AuroraDevice`, `AuroraCircadian`,
+  `AuroraEngine`, `AuroraApp`; `swift build` green
+- 🔨 `MenuBarExtra` shell with a mode-switcher (the headline UX) + LED preview
+- ⏳ `Scripts/package_app.sh` → `dist/Aurora.app`
+
+## M1 — Circadian mode (first real mode) ⏳
+**Goal:** the flagship differentiator, end-to-end on the simulated controller.
+- Solar position (sunrise/sunset from lat/long + date, no network)
+- Time-of-day → color-temperature schedule (day/sunset/night, configurable)
+- Kelvin → RGB (planckian); smooth transitions like f.lux
+- Location: manual + CoreLocation; brightness curve option
+- Menu-bar quick toggles (day/night override, pause)
+- Live preview reflects the schedule; unit tests for solar + kelvin math
+
+## M2 — Device layer on real hardware ⏳
+**Goal:** drive the owner's physical controller.
+- Confirm protocol against hardware (baud, header, RGB order, checksum)
+- `SerialLEDController`: port enumeration/auto-detect, termios, frame writer
+- Brightness/gamma calibration; reconnect handling
+- Circadian renders to the real LEDs
+
+## M3 — Screen Sync ⏳
+**Goal:** core Skydimo parity feature.
+- `ScreenCaptureKit` capture, per-display
+- Edge-zone sampling → per-LED averaging mapped via `ledMap`
+- Sub-modes: Full / Cinema (letterbox) / Top / Bottom / Left / Right halves
+- Temporal smoothing, saturation/brightness controls, capture FPS control
+- Multi-monitor selection
+
+## M4 — Music Sync ⏳
+**Goal:** audio-reactive lighting.
+- System-audio loopback + mic capture; source picker
+- `vDSP` FFT → frequency bands → `key_music` channel mapping
+- Modes 1–4 (peak/spectrum/flow/mood), sensitivity & smoothing
+- Beat detection
+
+## M5 — Scenes, schedules, polish ⏳
+**Goal:** delight + automation.
+- Static colors, gradients, saved scenes/presets
+- Time/automation rules (e.g. circadian by day → screen-sync in the evening)
+- Global hotkeys for modes; launch-at-login; per-mode persistence
+- Onboarding, empty/permission states, accessibility pass
+
+## M6 — Release engineering ⏳
+**Goal:** shippable.
+- Code signing + notarization (requires full Xcode/`notarytool`)
+- Auto-update, crash reporting (opt-in), DMG packaging
+- App icon, marketing page
+
+---
+
+### Stretch / backlog (see PRD "Future feature ideas")
+Wake-up sunrise alarm · Now-Playing album-art color · ambient-light adaptive
+brightness · Focus/Pomodoro lighting · notification glows · HDR/game-aware
+capture · iOS companion via Shortcuts.
