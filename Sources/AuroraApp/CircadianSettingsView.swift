@@ -22,10 +22,14 @@ struct CircadianSettingsView: View {
             )
 
             GroupBox("Color temperature") {
-                VStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: 8) {
                     kelvinSlider("Day", \.dayKelvin, 4000...7000)
                     kelvinSlider("Sunset", \.sunsetKelvin, 2500...4500)
-                    kelvinSlider("Night", \.nightKelvin, 1500...2700)
+                    kelvinSlider("Night", \.nightKelvin, 1200...3500)
+                    Text("Lower Night = warmer / more orange (1200K ≈ amber, 1900K ≈ orange, 2700K ≈ warm yellow). Tap **Night** above to preview it on the strip.")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(6)
             }
@@ -76,17 +80,21 @@ struct CircadianSettingsView: View {
         )
     }
 
-    @ViewBuilder
     private func kelvinSlider(
         _ label: String,
         _ keyPath: WritableKeyPath<CircadianSettings, Double>,
         _ range: ClosedRange<Double>
     ) -> some View {
-        HStack {
-            Text(label).frame(width: 60, alignment: .leading)
+        let kelvin = model.circadianSettings[keyPath: keyPath]
+        return HStack(spacing: 8) {
+            Text(label).frame(width: 52, alignment: .leading)
+            RoundedRectangle(cornerRadius: 4)
+                .fill(ColorTemperature.rgb(kelvin: kelvin).swiftUIColor)
+                .frame(width: 24, height: 16)
+                .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(.white.opacity(0.15)))
             Slider(value: bind(keyPath), in: range)
-            Text("\(Int(model.circadianSettings[keyPath: keyPath]))K")
-                .frame(width: 56, alignment: .trailing)
+            Text("\(Int(kelvin))K")
+                .frame(width: 50, alignment: .trailing)
                 .monospacedDigit()
         }
     }

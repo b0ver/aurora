@@ -32,7 +32,7 @@ public struct CircadianSettings: Codable, Sendable, Equatable {
         longitude: Double,
         dayKelvin: Double = 6500,
         sunsetKelvin: Double = 3400,
-        nightKelvin: Double = 1900,
+        nightKelvin: Double = 1600,
         dimAtNight: Bool = true,
         nightBrightness: Double = 0.45,
         override: CircadianOverride = .auto
