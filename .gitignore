@@ -25,3 +25,11 @@ Aurora.app/
 # --- Editor ---
 .idea/
 .vscode/
+
+# --- iCloud/Finder duplication artifacts ("Foo 2.swift", "Bar 3.sh", …) ---
+* [0-9].swift
+* [0-9].sh
+* [0-9].md
+* [0-9].json
+* [0-9].plist
+* [0-9].template

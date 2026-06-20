@@ -18,6 +18,10 @@ public final class LightEngine: ObservableObject {
     @Published public private(set) var isRunning: Bool = false
     @Published public private(set) var lastFrame: [RGB]
 
+    /// When set, frames are rendered for this fixed moment instead of "now"
+    /// (drives the schedule scrubber preview). Nil = live.
+    public var previewTime: Date?
+
     public let controller: LEDController
     private var sources: [Mode: ModeSource]
     private var timer: Timer?
@@ -55,6 +59,11 @@ public final class LightEngine: ObservableObject {
         tick()
     }
 
+    /// Re-render immediately (e.g. after a settings or brightness change).
+    public func refresh() {
+        tick()
+    }
+
     /// Replace or install a mode source (e.g. when settings change).
     public func setSource(_ source: ModeSource, for mode: Mode) {
         sources[mode] = source
@@ -63,7 +72,8 @@ public final class LightEngine: ObservableObject {
 
     private func tick() {
         guard let source = sources[activeMode] else { return }
-        let raw = source.frame(at: Date(), layout: controller.layout)
+        let now = previewTime ?? Date()
+        let raw = source.frame(at: now, layout: controller.layout)
         let frame = masterBrightness >= 1.0 ? raw : raw.map { $0.scaled(by: masterBrightness) }
         lastFrame = frame
         controller.render(frame)

@@ -21,14 +21,16 @@ Legend: ✅ done · 🔨 in progress · ⏳ planned
 - ✅ Real `SkydimoProtocol` packet builder + `SerialLEDController` (termios),
   byte-exact tested — ready for M2 hardware bring-up
 
-## M1 — Circadian mode (first real mode) ⏳
+## M1 — Circadian mode (first real mode) ✅
 **Goal:** the flagship differentiator, end-to-end on the simulated controller.
-- Solar position (sunrise/sunset from lat/long + date, no network)
-- Time-of-day → color-temperature schedule (day/sunset/night, configurable)
-- Kelvin → RGB (planckian); smooth transitions like f.lux
-- Location: manual + CoreLocation; brightness curve option
-- Menu-bar quick toggles (day/night override, pause)
-- Live preview reflects the schedule; unit tests for solar + kelvin math
+- ✅ Solar position (sunrise/sunset from lat/long + date, no network)
+- ✅ Time-of-day → color-temperature schedule (day/sunset/night, configurable)
+- ✅ Kelvin → RGB; smooth elevation-based transitions like f.lux
+- ✅ Location: manual + CoreLocation ("Use my location"); night brightness curve
+- ✅ Menu-bar quick toggles: Auto/Day/Night override + pause
+- ✅ Settings panel: Kelvin sliders, 24h **schedule preview graph** + time scrubber
+- ✅ Persistence (UserDefaults); `AuroraChecks` covers override/schedule/codable
+- ✅ Launch smoke test: app runs as menu-bar agent without startup crash
 
 ## M2 — Device layer on real hardware ⏳
 **Goal:** drive the owner's physical controller.

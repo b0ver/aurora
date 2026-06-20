@@ -1,19 +1,19 @@
 import SwiftUI
 import AppKit
 import AuroraCore
-import AuroraEngine
+import AuroraCircadian
 
-/// The menu-bar panel — the headline UX: switch modes, see the live strip,
-/// set brightness, pause, all without opening a window.
+/// The menu-bar panel — the headline UX: switch modes, override the circadian
+/// schedule, see the live strip, set brightness, pause — all without a window.
 struct MenuBarView: View {
-    @ObservedObject var engine: LightEngine
+    @ObservedObject var model: AuroraModel
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 12) {
             header
 
-            Picker("Mode", selection: modeBinding) {
+            Picker("Mode", selection: $model.mode) {
                 ForEach(Mode.allCases) { mode in
                     Label(mode.title, systemImage: mode.symbol).tag(mode)
                 }
@@ -21,22 +21,26 @@ struct MenuBarView: View {
             .pickerStyle(.segmented)
             .labelsHidden()
 
-            if !engine.activeMode.isImplemented {
+            if model.mode == .circadian {
+                Picker("Override", selection: overrideBinding) {
+                    ForEach(CircadianOverride.allCases, id: \.self) { Text($0.title).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+            } else if !model.mode.isImplemented {
                 Label("Coming soon", systemImage: "hammer")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
-            LEDStripView(frame: engine.lastFrame)
+            LEDStripView(frame: model.lastFrame)
                 .frame(height: 26)
                 .clipShape(RoundedRectangle(cornerRadius: 6))
 
             brightnessRow
 
             HStack {
-                Button(engine.isRunning ? "Pause" : "Resume") {
-                    engine.isRunning ? engine.stop() : engine.start()
-                }
+                Button(model.isRunning ? "Pause" : "Resume") { model.togglePause() }
                 Spacer()
                 Button("Open Aurora…") { openWindow(id: "main") }
             }
@@ -48,7 +52,6 @@ struct MenuBarView: View {
         }
         .padding(14)
         .frame(width: 300)
-        .onAppear { if !engine.isRunning { engine.start() } }
     }
 
     private var header: some View {
@@ -57,7 +60,7 @@ struct MenuBarView: View {
             Text("Aurora").font(.headline)
             Spacer()
             Circle()
-                .fill(engine.controller.isConnected ? Color.green : Color.secondary)
+                .fill(model.engine.controller.isConnected ? Color.green : Color.secondary)
                 .frame(width: 8, height: 8)
         }
     }
@@ -65,13 +68,16 @@ struct MenuBarView: View {
     private var brightnessRow: some View {
         HStack(spacing: 8) {
             Image(systemName: "sun.min")
-            Slider(value: $engine.masterBrightness, in: 0...1)
+            Slider(value: $model.brightness, in: 0...1)
             Image(systemName: "sun.max")
         }
         .foregroundStyle(.secondary)
     }
 
-    private var modeBinding: Binding<Mode> {
-        Binding(get: { engine.activeMode }, set: { engine.setMode($0) })
+    private var overrideBinding: Binding<CircadianOverride> {
+        Binding(
+            get: { model.circadianSettings.override },
+            set: { model.circadianSettings.override = $0 }
+        )
     }
 }

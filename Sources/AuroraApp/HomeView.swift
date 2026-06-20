@@ -1,58 +1,76 @@
 import SwiftUI
 import AuroraCore
-import AuroraEngine
 
-/// Main window: live preview, mode switcher, brightness, device status.
-/// A fuller settings surface arrives with each mode milestone.
+/// Main window: live preview, mode switcher, mode-specific settings (circadian
+/// today), and device status.
 struct HomeView: View {
-    @ObservedObject var engine: LightEngine
+    @ObservedObject var model: AuroraModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            HStack(spacing: 8) {
-                Image(systemName: "sun.max.fill").font(.title).foregroundStyle(.yellow)
-                Text("Aurora").font(.largeTitle.bold())
-                Spacer()
-            }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                header
 
-            LEDStripView(frame: engine.lastFrame)
-                .frame(height: 48)
-                .clipShape(RoundedRectangle(cornerRadius: 10))
-                .shadow(color: .black.opacity(0.3), radius: 8, y: 4)
+                LEDStripView(frame: model.lastFrame)
+                    .frame(height: 48)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .shadow(color: .black.opacity(0.3), radius: 8, y: 4)
 
-            Picker("Mode", selection: modeBinding) {
-                ForEach(Mode.allCases) { mode in
-                    Label(mode.title, systemImage: mode.symbol).tag(mode)
+                Picker("Mode", selection: $model.mode) {
+                    ForEach(Mode.allCases) { mode in
+                        Label(mode.title, systemImage: mode.symbol).tag(mode)
+                    }
                 }
-            }
-            .pickerStyle(.segmented)
+                .pickerStyle(.segmented)
 
-            GroupBox("Brightness") {
-                HStack {
-                    Image(systemName: "sun.min")
-                    Slider(value: $engine.masterBrightness, in: 0...1)
-                    Image(systemName: "sun.max")
+                if model.mode == .circadian {
+                    CircadianSettingsView(model: model)
+                } else {
+                    ContentUnavailablePlaceholder(mode: model.mode)
                 }
-                .foregroundStyle(.secondary)
-                .padding(6)
+
+                GroupBox("Master brightness") {
+                    HStack {
+                        Image(systemName: "sun.min")
+                        Slider(value: $model.brightness, in: 0...1)
+                        Image(systemName: "sun.max")
+                    }
+                    .foregroundStyle(.secondary)
+                    .padding(6)
+                }
+
+                Label(model.deviceStatus,
+                      systemImage: model.engine.controller.isConnected ? "cable.connector" : "eye")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
+            .padding(24)
+        }
+        .frame(minWidth: 480, minHeight: 560)
+    }
 
-            Label(deviceStatus, systemImage: engine.controller.isConnected ? "cable.connector" : "eye")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
+    private var header: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "sun.max.fill").font(.title).foregroundStyle(.yellow)
+            Text("Aurora").font(.largeTitle.bold())
             Spacer()
         }
-        .padding(24)
-        .frame(minWidth: 460, minHeight: 380)
     }
+}
 
-    private var deviceStatus: String {
-        let where_ = engine.controller.isConnected ? "Controller connected" : "Preview only"
-        return "\(where_) · \(engine.controller.layout.count) LEDs"
-    }
+/// Placeholder shown for modes that aren't wired up yet.
+struct ContentUnavailablePlaceholder: View {
+    let mode: Mode
 
-    private var modeBinding: Binding<Mode> {
-        Binding(get: { engine.activeMode }, set: { engine.setMode($0) })
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: mode.symbol).font(.largeTitle).foregroundStyle(.secondary)
+            Text("\(mode.title) is coming soon").font(.headline)
+            Text("Circadian mode is fully available today.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 28)
+        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 10))
     }
 }
