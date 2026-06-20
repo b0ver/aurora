@@ -6,11 +6,13 @@ import AuroraCircadian
 import AuroraEngine
 
 /// App-level view model (the single source of truth the UI binds to). Wraps the
-/// engine + circadian mode, forwards user edits, persists state, and republishes
-/// the live frame for the preview.
+/// engine + circadian mode, forwards user edits as value-captured providers
+/// (race-free across the render thread), persists state, and republishes the
+/// live frame for the preview.
 @MainActor
 final class AuroraModel: ObservableObject {
     let engine: LightEngine
+    /// Main-thread-only circadian instance used for the schedule graph + queries.
     let circadian: CircadianMode
     let locationProvider = LocationProvider()
 
@@ -26,10 +28,14 @@ final class AuroraModel: ObservableObject {
         didSet { engine.setMode(mode); persist() }
     }
     @Published var brightness: Double {
-        didSet { engine.masterBrightness = brightness; engine.refresh(); persist() }
+        didSet { engine.setBrightness(brightness); persist() }
     }
     @Published var circadianSettings: CircadianSettings {
-        didSet { circadian.settings = circadianSettings; engine.refresh(); persist() }
+        didSet {
+            circadian.settings = circadianSettings              // main-only, for the graph
+            engine.setProvider(makeCircadianProvider(), for: .circadian)
+            persist()
+        }
     }
     /// How the physical strip is mounted (affects screen-sync mapping; the live
     /// grid preview reflects it). No effect on uniform modes like circadian.
@@ -38,12 +44,13 @@ final class AuroraModel: ObservableObject {
     }
     /// Non-nil while the user is scrubbing the schedule preview (local hour 0...24).
     @Published var previewHour: Double? {
-        didSet { applyPreview() }
+        didSet { engine.setPreviewTime(previewHour.map(dateFor(hour:))) }
     }
 
     // Republished from the engine so views observing the model refresh live.
     @Published private(set) var lastFrame: [RGB] = []
     @Published private(set) var isRunning: Bool = false
+    @Published private(set) var isConnected: Bool = false
 
     init() {
         let saved = Persistence.load()
@@ -62,19 +69,32 @@ final class AuroraModel: ObservableObject {
 
         let settings = saved?.circadian ?? CircadianSettings(latitude: 55.75, longitude: 37.62)
         let circ = CircadianMode(settings: settings)
-        let eng = LightEngine(controller: controller, sources: [.circadian: circ], tickInterval: 1.0)
-
-        self.engine = eng
         self.circadian = circ
-        self.mode = saved?.mode ?? .circadian
-        self.brightness = saved?.brightness ?? 1.0
+
+        let startMode = saved?.mode ?? .circadian
+        let startBrightness = saved?.brightness ?? 1.0
+
+        // Value-captured provider — the render thread never touches shared mutable state.
+        let provider: @Sendable (Date, LEDLayout) -> [RGB] = { date, layout in
+            CircadianMode(settings: settings).frame(at: date, layout: layout)
+        }
+        let eng = LightEngine(
+            controller: controller,
+            providers: [.circadian: provider],
+            mode: startMode,
+            brightness: startBrightness,
+            fps: 30
+        )
+        self.engine = eng
+
+        self.mode = startMode
+        self.brightness = startBrightness
         self.circadianSettings = settings
         self.installationMethod = saved?.installationMethod ?? .default
 
-        eng.masterBrightness = brightness
-        eng.activeMode = mode
         eng.$lastFrame.assign(to: &$lastFrame)
         eng.$isRunning.assign(to: &$isRunning)
+        eng.$isConnected.assign(to: &$isConnected)
 
         locationProvider.onUpdate = { [weak self] lat, lon in
             guard let self else { return }
@@ -88,7 +108,7 @@ final class AuroraModel: ObservableObject {
     // MARK: Intents
 
     func togglePause() {
-        isRunning ? engine.stop() : engine.start()
+        engine.setPaused(isRunning)
     }
 
     func requestLocation() {
@@ -120,9 +140,11 @@ final class AuroraModel: ObservableObject {
 
     // MARK: Private
 
-    private func applyPreview() {
-        engine.previewTime = previewHour.map(dateFor(hour:))
-        engine.refresh()
+    private func makeCircadianProvider() -> @Sendable (Date, LEDLayout) -> [RGB] {
+        let settings = circadianSettings   // value snapshot — immutable in the closure
+        return { date, layout in
+            CircadianMode(settings: settings).frame(at: date, layout: layout)
+        }
     }
 
     private func dateFor(hour: Double) -> Date {

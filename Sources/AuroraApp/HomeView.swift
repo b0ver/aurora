@@ -44,7 +44,7 @@ struct HomeView: View {
                 }
 
                 Label(model.deviceStatus,
-                      systemImage: model.engine.controller.isConnected ? "cable.connector" : "eye")
+                      systemImage: model.isConnected ? "cable.connector" : "eye")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

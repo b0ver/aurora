@@ -2,80 +2,119 @@ import Foundation
 import Combine
 import AuroraCore
 import AuroraDevice
-import AuroraCircadian
 
-/// Orchestrates the render loop: on each tick it asks the active mode for a
-/// frame, applies master brightness, publishes it for the UI preview, and pushes
-/// it to the controller.
+/// Drives the LED output with a **continuous background render loop**.
 ///
-/// M0 runs the loop on the main run loop at a low rate (circadian only needs a
-/// few fps). High-rate sources (screen/audio) will move to a dedicated queue with
-/// proper actor isolation in M3/M4.
-@MainActor
+/// A `DispatchSourceTimer` on a dedicated queue produces frames at a fixed FPS
+/// and streams them to the controller — independent of the main run loop, so it
+/// never stalls while a menu/popover is open, and the controller is always fed
+/// (preventing idle-blanking). UI events only update queue-confined state; they
+/// never write to the serial port directly.
+///
+/// Threading contract:
+/// - `q*` properties are touched **only** on `renderQueue`.
+/// - `@Published` properties are mutated **only** on the main thread.
+/// - `controller` is used **only** on `renderQueue`.
 public final class LightEngine: ObservableObject {
-    @Published public var activeMode: Mode = .circadian
-    @Published public var masterBrightness: Double = 1.0
-    @Published public private(set) var isRunning: Bool = false
     @Published public private(set) var lastFrame: [RGB]
-
-    /// When set, frames are rendered for this fixed moment instead of "now"
-    /// (drives the schedule scrubber preview). Nil = live.
-    public var previewTime: Date?
+    @Published public private(set) var isRunning = false
+    @Published public private(set) var isConnected = false
 
     public let controller: LEDController
-    private var sources: [Mode: ModeSource]
-    private var timer: Timer?
-    private let tickInterval: TimeInterval
+
+    private let renderQueue = DispatchQueue(label: "com.evgenypopov.aurora.render", qos: .userInitiated)
+    private var timer: DispatchSourceTimer?
+    private let interval: TimeInterval
+
+    // Queue-confined state.
+    private var providers: [Mode: @Sendable (Date, LEDLayout) -> [RGB]]
+    private var qMode: Mode
+    private var qBrightness: Double
+    private var qPreviewTime: Date?
+    private var qPaused = false
+    private var qLastComputed: [RGB]
 
     public init(
         controller: LEDController,
-        sources: [Mode: ModeSource],
-        tickInterval: TimeInterval = 1.0
+        providers: [Mode: @Sendable (Date, LEDLayout) -> [RGB]],
+        mode: Mode = .circadian,
+        brightness: Double = 1.0,
+        fps: Double = 30
     ) {
         self.controller = controller
-        self.sources = sources
-        self.tickInterval = tickInterval
-        self.lastFrame = Array(repeating: .black, count: controller.layout.count)
+        self.providers = providers
+        self.qMode = mode
+        self.qBrightness = brightness
+        self.interval = 1.0 / max(fps, 1)
+        let blank = Array(repeating: RGB.black, count: controller.layout.count)
+        self.lastFrame = blank
+        self.qLastComputed = blank
     }
 
     public func start() {
-        guard !isRunning else { return }
-        try? controller.connect()
-        isRunning = true
-        tick()
-        timer = Timer.scheduledTimer(withTimeInterval: tickInterval, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.tick() }
+        guard timer == nil else { return }
+        setPublished { self.isRunning = true }
+
+        // Connect, then start ticking — both on the serial render queue (serial,
+        // so connect completes before the first tick).
+        renderQueue.async {
+            _ = try? self.controller.connect()
+            let connected = self.controller.isConnected
+            self.setPublished { self.isConnected = connected }
         }
+
+        let t = DispatchSource.makeTimerSource(queue: renderQueue)
+        t.schedule(deadline: .now(), repeating: interval, leeway: .milliseconds(4))
+        t.setEventHandler { [weak self] in self?.renderTick() }
+        timer = t
+        t.resume()
     }
 
+    /// Fully stop the loop (app teardown). For user "pause", use `setPaused`.
     public func stop() {
-        timer?.invalidate()
+        timer?.cancel()
         timer = nil
-        isRunning = false
+        setPublished { self.isRunning = false }
     }
 
-    public func setMode(_ mode: Mode) {
-        activeMode = mode
-        tick()
+    // MARK: Intents (called on main, applied on renderQueue)
+
+    public func setMode(_ mode: Mode) { renderQueue.async { self.qMode = mode } }
+    public func setBrightness(_ b: Double) { renderQueue.async { self.qBrightness = b } }
+    public func setPreviewTime(_ d: Date?) { renderQueue.async { self.qPreviewTime = d } }
+
+    public func setProvider(_ provider: @escaping @Sendable (Date, LEDLayout) -> [RGB], for mode: Mode) {
+        renderQueue.async { self.providers[mode] = provider }
     }
 
-    /// Re-render immediately (e.g. after a settings or brightness change).
-    public func refresh() {
-        tick()
+    /// Pause = freeze on the current frame but keep streaming it (so the strip
+    /// holds instead of idle-blanking). Resume re-enables live computation.
+    public func setPaused(_ paused: Bool) {
+        setPublished { self.isRunning = !paused }
+        renderQueue.async { self.qPaused = paused }
     }
 
-    /// Replace or install a mode source (e.g. when settings change).
-    public func setSource(_ source: ModeSource, for mode: Mode) {
-        sources[mode] = source
-        if mode == activeMode { tick() }
-    }
+    // MARK: Render loop (runs on renderQueue)
 
-    private func tick() {
-        guard let source = sources[activeMode] else { return }
-        let now = previewTime ?? Date()
-        let raw = source.frame(at: now, layout: controller.layout)
-        let frame = masterBrightness >= 1.0 ? raw : raw.map { $0.scaled(by: masterBrightness) }
-        lastFrame = frame
+    private func renderTick() {
+        let frame: [RGB]
+        if qPaused {
+            frame = qLastComputed
+        } else if let provider = providers[qMode] {
+            let now = qPreviewTime ?? Date()
+            let raw = provider(now, controller.layout)
+            let b = qBrightness
+            frame = b >= 1.0 ? raw : raw.map { $0.scaled(by: b) }
+            qLastComputed = frame
+        } else {
+            frame = qLastComputed
+        }
+
         controller.render(frame)
+        setPublished { self.lastFrame = frame }
+    }
+
+    private func setPublished(_ work: @escaping () -> Void) {
+        if Thread.isMainThread { work() } else { DispatchQueue.main.async(execute: work) }
     }
 }

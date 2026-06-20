@@ -60,7 +60,7 @@ struct MenuBarView: View {
             Text("Aurora").font(.headline)
             Spacer()
             Circle()
-                .fill(model.engine.controller.isConnected ? Color.green : Color.secondary)
+                .fill(model.isConnected ? Color.green : Color.secondary)
                 .frame(width: 8, height: 8)
         }
     }
