@@ -76,6 +76,29 @@ let roundTrip = try! JSONDecoder().decode(CircadianSettings.self, from: try! JSO
 check(roundTrip == saved, "CircadianSettings survives a JSON round-trip")
 check((try? JSONDecoder().decode(Mode.self, from: try! JSONEncoder().encode(Mode.circadian))) == .circadian, "Mode is Codable")
 
+print("Installation method")
+let base = LEDLayout.fromLines([14, 26, 14])  // SK0124-like: W=26, H=14
+check(base.count == 54, "fromLines builds 54 LEDs for [14,26,14]")
+check(base.screenWidth == 26 && base.screenHeight == 14, "extents derived from per-side counts")
+let firstBase = base.points.first!
+check(firstBase.x == 0 && firstBase.y == 13, "LED 1 starts bottom-left in canonical layout")
+
+let identity = base.applying(InstallationMethod(horizontal: .leftToRight, vertical: .bottomToTop))
+check(identity.points.map { [$0.x, $0.y] } == base.points.map { [$0.x, $0.y] }, "LTR+bottomToTop is identity")
+
+let userMethod = InstallationMethod(horizontal: .rightToLeft, vertical: .topToBottom)
+let flipped = base.applying(userMethod)
+let firstFlipped = flipped.points.first!
+check(firstFlipped.id == firstBase.id, "id/index order preserved under flip")
+check(firstFlipped.x == 25 && firstFlipped.y == 0, "RTL+topToBottom moves LED 1 to top-right (25,0)")
+check(InstallationMethod.default == userMethod, "default == user's confirmed setting (RTL + topToBottom)")
+
+let involutive = flipped.applying(userMethod)
+check(involutive.points.map { [$0.x, $0.y] } == base.points.map { [$0.x, $0.y] }, "double-applying a method is involutive")
+
+check(ControllerCatalog.info(forReply: "SK0127,<config>")?.ledCount == 65, "catalog resolves SK0127 -> 65 LEDs")
+check(ControllerCatalog.info(forReply: "garbage") == nil, "catalog rejects junk reply")
+
 print("")
 if failures == 0 {
     print("✅ All checks passed")

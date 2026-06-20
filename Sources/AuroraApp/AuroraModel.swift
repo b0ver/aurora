@@ -14,6 +14,14 @@ final class AuroraModel: ObservableObject {
     let circadian: CircadianMode
     let locationProvider = LocationProvider()
 
+    /// Identity of the real controller if one was detected at launch (else nil →
+    /// running on the on-screen simulator).
+    let detectedInfo: ControllerInfo?
+    let portPath: String?
+
+    /// Canonical (un-flipped) geometry of the strip, for the layout preview.
+    let baseLayout: LEDLayout
+
     @Published var mode: Mode {
         didSet { engine.setMode(mode); persist() }
     }
@@ -22,6 +30,11 @@ final class AuroraModel: ObservableObject {
     }
     @Published var circadianSettings: CircadianSettings {
         didSet { circadian.settings = circadianSettings; engine.refresh(); persist() }
+    }
+    /// How the physical strip is mounted (affects screen-sync mapping; the live
+    /// grid preview reflects it). No effect on uniform modes like circadian.
+    @Published var installationMethod: InstallationMethod {
+        didSet { persist() }
     }
     /// Non-nil while the user is scrubbing the schedule preview (local hour 0...24).
     @Published var previewHour: Double? {
@@ -34,8 +47,19 @@ final class AuroraModel: ObservableObject {
 
     init() {
         let saved = Persistence.load()
-        let layout = LEDLayout.strip(count: 54)
-        let controller = SimulatedLEDController(layout: layout)
+
+        // Try the real hardware first; fall back to the on-screen simulator.
+        let detected = DeviceManager.detect()
+        let controller: LEDController
+        if let d = detected {
+            controller = DeviceManager.makeController(for: d)
+        } else {
+            controller = SimulatedLEDController(layout: .strip(count: 54))
+        }
+        self.detectedInfo = detected?.info
+        self.portPath = detected?.portPath
+        self.baseLayout = LEDLayout.fromLines(detected?.info.lines ?? [14, 26, 14])
+
         let settings = saved?.circadian ?? CircadianSettings(latitude: 55.75, longitude: 37.62)
         let circ = CircadianMode(settings: settings)
         let eng = LightEngine(controller: controller, sources: [.circadian: circ], tickInterval: 1.0)
@@ -45,6 +69,7 @@ final class AuroraModel: ObservableObject {
         self.mode = saved?.mode ?? .circadian
         self.brightness = saved?.brightness ?? 1.0
         self.circadianSettings = settings
+        self.installationMethod = saved?.installationMethod ?? .default
 
         eng.masterBrightness = brightness
         eng.activeMode = mode
@@ -71,9 +96,17 @@ final class AuroraModel: ObservableObject {
     }
 
     var deviceStatus: String {
-        let where_ = engine.controller.isConnected ? "Controller connected" : "Preview only"
-        return "\(where_) · \(engine.controller.layout.count) LEDs"
+        if let info = detectedInfo {
+            let port = portPath.map { ($0 as NSString).lastPathComponent } ?? "?"
+            return "\(info.model) · \(info.ledCount) LEDs · \(port)"
+        }
+        return "Preview only · \(engine.controller.layout.count) LEDs"
     }
+
+    var hasRealDevice: Bool { detectedInfo != nil }
+
+    /// Strip geometry with the installation method applied — drives the preview.
+    var previewLayout: LEDLayout { baseLayout.applying(installationMethod) }
 
     /// Schedule samples for today's preview graph.
     func todaySchedule() -> [SchedulePoint] {
@@ -98,6 +131,11 @@ final class AuroraModel: ObservableObject {
     }
 
     private func persist() {
-        Persistence.save(SavedState(mode: mode, brightness: brightness, circadian: circadianSettings))
+        Persistence.save(SavedState(
+            mode: mode,
+            brightness: brightness,
+            circadian: circadianSettings,
+            installationMethod: installationMethod
+        ))
     }
 }

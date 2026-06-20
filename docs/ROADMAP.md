@@ -32,14 +32,17 @@ Legend: ✅ done · 🔨 in progress · ⏳ planned
 - ✅ Persistence (UserDefaults); `AuroraChecks` covers override/schedule/codable
 - ✅ Launch smoke test: app runs as menu-bar agent without startup crash
 
-## M2 — Device layer on real hardware 🔨
+## M2 — Device layer on real hardware ✅
 **Goal:** drive the owner's physical controller.
 - ✅ `AuroraProbe` bring-up CLI: port scan, handshake auto-discovery, color/order
   test, live circadian on real LEDs
-- ⏳ Confirm on hardware: handshake `SK####`, **RGB vs GRB** channel order, LED count
-- ⏳ Wire auto-detected `SerialLEDController` into the app (real + simulated sinks)
-- ⏳ Brightness/gamma calibration; reconnect & port-busy handling
-- ⏳ Circadian renders to the real strip
+- ✅ **Confirmed on hardware (SK0127, 65 LEDs):** `Moni-A`→`SK0127` handshake,
+  channel order **RGB**, count from `ControllerCatalog`
+- ✅ `DeviceManager` auto-detect wired into the app; `SerialLEDController` (real)
+  with `SimulatedLEDController` fallback
+- ✅ Installation-direction model + setup screen (see [ADR-0004](adr/0004-installation-direction.md))
+- ✅ Circadian renders to the real strip (menu-bar agent)
+- ⏳ Brightness/gamma calibration; live reconnect/rescan & port-busy UX (carry to polish)
 
 ### Bring-up prerequisite
 The serial port is **exclusive** — the native Skydimo app must be fully quit

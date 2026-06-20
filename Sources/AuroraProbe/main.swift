@@ -53,14 +53,9 @@ func parseOrder(_ s: String?) -> SkydimoProtocol.ChannelOrder {
     }
 }
 
-/// model id → LED count, from the vendor SKController.json catalog.
+/// model id → LED count, from the embedded ControllerCatalog (shared with the app).
 func ledCount(forModel model: String) -> Int? {
-    let path = "docs/reference/controller-configs/SKController.json"
-    guard let data = FileManager.default.contents(atPath: path),
-          let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
-    let key = String(model.uppercased().prefix(6))
-    guard let entry = obj[key] as? [String: Any], let n = entry["nbLeds"] as? Int else { return nil }
-    return n
+    ControllerCatalog.models[String(model.uppercased().prefix(6))]?.leds
 }
 
 func connect(port: String, count: Int, order: SkydimoProtocol.ChannelOrder) -> SerialLEDController? {
@@ -173,7 +168,15 @@ case "circadian":
     controller.disconnect()
     print("✓ done")
 
+case "detect":
+    // Exercises the exact path the app uses (DeviceManager.detect()).
+    if let d = DeviceManager.detect() {
+        print("✅ detected \(d.info.model) — \(d.info.ledCount) LEDs, lines \(d.info.lines) on \(d.portPath)")
+    } else {
+        print("⚠︎ no controller detected (quit the native Skydimo app; is it plugged in?)")
+    }
+
 default:
     print("unknown command: \(command)")
-    print("usage: list | handshake [port] | test [port] [count] [rgb|grb] | circadian [port] [count] [rgb|grb]")
+    print("usage: list | detect | handshake [port] | test [port] [count] [rgb|grb] | circadian [port] [count] [rgb|grb]")
 }
