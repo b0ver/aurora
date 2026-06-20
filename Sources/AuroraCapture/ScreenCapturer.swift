@@ -14,6 +14,7 @@ final class ScreenCapturer: NSObject, SCStreamOutput {
     private let targetWidth = 96
 
     func start() async throws {
+        guard stream == nil else { return }
         let content = try await SCShareableContent.current
         guard let display = content.displays.first else { throw CaptureError.noDisplay }
 

@@ -28,6 +28,7 @@ final class AuroraModel: ObservableObject {
         didSet {
             engine.setMode(mode)
             updateCaptureState()
+            if previewHour != nil { previewHour = nil }   // drop any stale circadian scrub time
             persist()
         }
     }
@@ -55,6 +56,12 @@ final class AuroraModel: ObservableObject {
     }
     @Published var musicSensitivity: Double {
         didSet { musicSync.sensitivity = musicSensitivity; persist() }
+    }
+    @Published var staticColor: RGB {
+        didSet { engine.setProvider(staticProvider(), for: .staticColor); persist() }
+    }
+    @Published var launchAtLogin: Bool {
+        didSet { LoginItem.setEnabled(launchAtLogin) }
     }
     @Published var previewHour: Double? {
         didSet { engine.setPreviewTime(previewHour.map(dateFor(hour:))) }
@@ -98,12 +105,24 @@ final class AuroraModel: ObservableObject {
         let startMode = saved?.mode ?? .circadian
         let startBrightness = saved?.brightness ?? 1.0
 
-        let circadianProvider = AuroraModel.circadianProvider(settings: settings, gamma: 2.8)
+        let staticColorStart = saved?.staticColor ?? ColorTemperature.rgb(kelvin: 2700)
+        let gamma = 2.8
+
+        let circadianProvider = AuroraModel.circadianProvider(settings: settings, gamma: gamma)
         let screenProvider: @Sendable (Date, LEDLayout) -> [RGB] = { _, _ in ss.currentFrame() }
         let musicProvider: @Sendable (Date, LEDLayout) -> [RGB] = { _, layout in ms.currentFrame(layout) }
+        let staticGamma = staticColorStart.gammaCorrected(gamma)
+        let staticProviderFn: @Sendable (Date, LEDLayout) -> [RGB] = { _, layout in
+            Array(repeating: staticGamma, count: layout.count)
+        }
         let eng = LightEngine(
             controller: controller,
-            providers: [.circadian: circadianProvider, .screenSync: screenProvider, .musicSync: musicProvider],
+            providers: [
+                .circadian: circadianProvider,
+                .screenSync: screenProvider,
+                .musicSync: musicProvider,
+                .staticColor: staticProviderFn,
+            ],
             mode: startMode,
             brightness: startBrightness,
             fps: 30
@@ -118,6 +137,8 @@ final class AuroraModel: ObservableObject {
         self.screenSyncSaturation = saturation
         self.musicMode = musicModeStart
         self.musicSensitivity = musicSens
+        self.staticColor = staticColorStart
+        self.launchAtLogin = LoginItem.isEnabled
 
         eng.$lastFrame.assign(to: &$lastFrame)
         eng.$isRunning.assign(to: &$isRunning)
@@ -174,6 +195,11 @@ final class AuroraModel: ObservableObject {
         AuroraModel.circadianProvider(settings: circadianSettings, gamma: outputGamma)
     }
 
+    private func staticProvider() -> @Sendable (Date, LEDLayout) -> [RGB] {
+        let color = staticColor.gammaCorrected(outputGamma)
+        return { _, layout in Array(repeating: color, count: layout.count) }
+    }
+
     private static func circadianProvider(
         settings: CircadianSettings,
         gamma: Double
@@ -201,7 +227,8 @@ final class AuroraModel: ObservableObject {
             screenSyncSubMode: screenSyncSubMode,
             screenSyncSaturation: screenSyncSaturation,
             musicMode: musicMode,
-            musicSensitivity: musicSensitivity
+            musicSensitivity: musicSensitivity,
+            staticColor: staticColor
         ))
     }
 }

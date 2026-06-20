@@ -1,7 +1,7 @@
 import Foundation
 
 /// An 8-bit-per-channel RGB color — the unit of everything Aurora pushes to LEDs.
-public struct RGB: Equatable, Hashable, Sendable {
+public struct RGB: Equatable, Hashable, Sendable, Codable {
     public var r: UInt8
     public var g: UInt8
     public var b: UInt8

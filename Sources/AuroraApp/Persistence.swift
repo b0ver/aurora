@@ -14,6 +14,7 @@ struct SavedState: Codable {
     var screenSyncSaturation: Double?
     var musicMode: MusicMode?
     var musicSensitivity: Double?
+    var staticColor: RGB?
 }
 
 /// Tiny UserDefaults-backed store for `SavedState`.

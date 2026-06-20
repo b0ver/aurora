@@ -30,8 +30,8 @@ struct HomeView: View {
                     ScreenSyncSettingsView(model: model, screenSync: model.screenSync)
                 case .musicSync:
                     MusicSyncSettingsView(model: model, musicSync: model.musicSync)
-                default:
-                    ContentUnavailablePlaceholder(mode: model.mode)
+                case .staticColor:
+                    StaticSettingsView(model: model)
                 }
 
                 GroupBox("Master brightness") {
@@ -47,6 +47,9 @@ struct HomeView: View {
                 GroupBox("Installation method") {
                     LayoutSetupView(model: model).padding(6)
                 }
+
+                Toggle("Launch Aurora at login", isOn: $model.launchAtLogin)
+                    .font(.callout)
 
                 Label(model.deviceStatus,
                       systemImage: model.isConnected ? "cable.connector" : "eye")

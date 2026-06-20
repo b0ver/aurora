@@ -17,6 +17,7 @@ public final class MusicSyncController: ObservableObject, @unchecked Sendable {
     private let bandCount = 24
     private let analyzer = SpectrumAnalyzer(size: 1024)
     private let capturer = AudioCapturer()
+    private var lifecycleTask: Task<Void, Never>?
 
     private let lock = NSLock()
     private var ring: [Float]
@@ -49,10 +50,13 @@ public final class MusicSyncController: ObservableObject, @unchecked Sendable {
 
     // MARK: Lifecycle
 
+    /// Chained lifecycle (each op awaits the previous) so rapid start/stop can't
+    /// reorder and leak the audio stream.
     public func start() {
-        guard status == .idle || status == .needsPermission || isFailed(status) else { return }
         setStatus(.starting)
-        Task { [weak self] in
+        let prev = lifecycleTask
+        lifecycleTask = Task { [weak self] in
+            await prev?.value
             guard let self else { return }
             do {
                 try await self.capturer.start()
@@ -65,7 +69,9 @@ public final class MusicSyncController: ObservableObject, @unchecked Sendable {
     }
 
     public func stop() {
-        Task { [weak self] in
+        let prev = lifecycleTask
+        lifecycleTask = Task { [weak self] in
+            await prev?.value
             await self?.capturer.stop()
             self?.setStatus(.idle)
         }
@@ -153,11 +159,6 @@ public final class MusicSyncController: ObservableObject, @unchecked Sendable {
             ring.append(contentsOf: s.suffix(count))
         }
         lock.unlock()
-    }
-
-    private func isFailed(_ s: Status) -> Bool {
-        if case .failed = s { return true }
-        return false
     }
 
     private func setStatus(_ s: Status) {
