@@ -33,9 +33,25 @@ microphone/screen capture).
 - We avoid committing a fragile `.pbxproj`. If a contributor wants Xcode, SwiftPM
   packages open directly in Xcode with no project file.
 
+## Testing
+
+`XCTest` and Swift Testing both ship with **full Xcode**, not Command Line
+Tools, so `swift test` fails here with `no such module 'XCTest' / 'Testing'`.
+
+Decision: logic is verified by a small **CLI check harness** — an executable
+target `AuroraChecks` that runs assertions and exits non-zero on failure:
+
+```bash
+swift run AuroraChecks
+```
+
+It covers color/Kelvin math, solar position, the byte-exact Skydimo packet
+format, and the circadian schedule. **Migrate to Swift Testing** once full Xcode
+is installed (the assertions port directly to `@Test`/`#expect`).
+
 ## Risk
 
 - Some Apple frameworks behave slightly differently when run as a bare SPM
   executable vs. a bundled `.app` (menu-bar presentation, TCC permission
   prompts). Mitigation: always test the **packaged** bundle for runtime/UX, use
-  `swift build`/tests for logic.
+  `swift build` + `swift run AuroraChecks` for logic.
