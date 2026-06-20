@@ -33,6 +33,7 @@ public final class LightEngine: ObservableObject {
     private var qPreviewTime: Date?
     private var qPaused = false
     private var qLastComputed: [RGB]
+    private var qLastPublished: [RGB]
 
     public init(
         controller: LEDController,
@@ -49,6 +50,7 @@ public final class LightEngine: ObservableObject {
         let blank = Array(repeating: RGB.black, count: controller.layout.count)
         self.lastFrame = blank
         self.qLastComputed = blank
+        self.qLastPublished = blank
     }
 
     public func start() {
@@ -111,7 +113,13 @@ public final class LightEngine: ObservableObject {
         }
 
         controller.render(frame)
-        setPublished { self.lastFrame = frame }
+
+        // Only republish to the UI when the frame actually changes — avoids
+        // 30 redundant main-thread updates per second for slow modes.
+        if frame != qLastPublished {
+            qLastPublished = frame
+            setPublished { self.lastFrame = frame }
+        }
     }
 
     private func setPublished(_ work: @escaping () -> Void) {
