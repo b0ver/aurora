@@ -42,6 +42,7 @@ Requires the Swift toolchain (Command Line Tools is enough for dev builds).
 
 ```bash
 swift build                 # compile all modules
+swift run AuroraChecks      # run the logic check harness (see ADR-0002)
 swift run AuroraApp         # run (dev)
 ./Scripts/package_app.sh    # produce dist/Aurora.app (menu-bar agent bundle)
 ```
