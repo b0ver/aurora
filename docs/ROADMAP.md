@@ -32,12 +32,18 @@ Legend: ✅ done · 🔨 in progress · ⏳ planned
 - ✅ Persistence (UserDefaults); `AuroraChecks` covers override/schedule/codable
 - ✅ Launch smoke test: app runs as menu-bar agent without startup crash
 
-## M2 — Device layer on real hardware ⏳
+## M2 — Device layer on real hardware 🔨
 **Goal:** drive the owner's physical controller.
-- Confirm protocol against hardware (baud, header, RGB order, checksum)
-- `SerialLEDController`: port enumeration/auto-detect, termios, frame writer
-- Brightness/gamma calibration; reconnect handling
-- Circadian renders to the real LEDs
+- ✅ `AuroraProbe` bring-up CLI: port scan, handshake auto-discovery, color/order
+  test, live circadian on real LEDs
+- ⏳ Confirm on hardware: handshake `SK####`, **RGB vs GRB** channel order, LED count
+- ⏳ Wire auto-detected `SerialLEDController` into the app (real + simulated sinks)
+- ⏳ Brightness/gamma calibration; reconnect & port-busy handling
+- ⏳ Circadian renders to the real strip
+
+### Bring-up prerequisite
+The serial port is **exclusive** — the native Skydimo app must be fully quit
+before Aurora/AuroraProbe can open it.
 
 ## M3 — Screen Sync ⏳
 **Goal:** core Skydimo parity feature.
@@ -46,6 +52,10 @@ Legend: ✅ done · 🔨 in progress · ⏳ planned
 - Sub-modes: Full / Cinema (letterbox) / Top / Bottom / Left / Right halves
 - Temporal smoothing, saturation/brightness controls, capture FPS control
 - Multi-monitor selection
+- **LED layout / direction setup screen** (parity with the original's setup step):
+  configure routing left→right / top→bottom, start corner, per-side counts —
+  seeded from the vendor `lines` (e.g. SK0124 = [14, 26, 14]) and `ledMap`.
+  Lives in Settings, not the menu bar. *(Owner requested; screenshot to follow.)*
 
 ## M4 — Music Sync ⏳
 **Goal:** audio-reactive lighting.
