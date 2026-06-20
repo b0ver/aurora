@@ -28,6 +28,8 @@ struct HomeView: View {
                     CircadianSettingsView(model: model)
                 case .screenSync:
                     ScreenSyncSettingsView(model: model, screenSync: model.screenSync)
+                case .musicSync:
+                    MusicSyncSettingsView(model: model, musicSync: model.musicSync)
                 default:
                     ContentUnavailablePlaceholder(mode: model.mode)
                 }
