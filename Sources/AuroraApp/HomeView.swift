@@ -39,8 +39,12 @@ struct HomeView: View {
                     .padding(6)
                 }
 
+                GroupBox("Installation method") {
+                    LayoutSetupView(model: model).padding(6)
+                }
+
                 Label(model.deviceStatus,
-                      systemImage: model.engine.controller.isConnected ? "cable.connector" : "eye")
+                      systemImage: model.isConnected ? "cable.connector" : "eye")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

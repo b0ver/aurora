@@ -34,6 +34,12 @@ let package = Package(
             name: "AuroraChecks",
             dependencies: ["AuroraCore", "AuroraCircadian", "AuroraDevice"]
         ),
+        // Hardware bring-up CLI (M2): port detection, handshake, color/order test,
+        // and live circadian on the real controller. See docs/protocol/.
+        .executableTarget(
+            name: "AuroraProbe",
+            dependencies: ["AuroraCore", "AuroraDevice", "AuroraCircadian"]
+        ),
     ],
     swiftLanguageModes: [.v5]
 )
