@@ -194,14 +194,13 @@ case "screencap":
 
 case "audiocap":
     // Validates the system-audio + FFT path (play music to see energy > 0).
-    let ms = MusicSyncController(mode: .spectrum, sensitivity: 1.0)
+    let ms = MusicSyncController(spatialLayout: .fromLines([17, 31, 17]), mode: .spectrum, sensitivity: 1.0)
     ms.start()
-    let layout = LEDLayout.fromLines([17, 31, 17])
     var maxEnergy = 0.0
     let deadline = Date().addingTimeInterval(4)
     while Date() < deadline {
         RunLoop.main.run(mode: .default, before: Date().addingTimeInterval(0.1))
-        _ = ms.currentFrame(layout)
+        _ = ms.currentFrame()
         maxEnergy = max(maxEnergy, ms.currentEnergy())
     }
     print("status: \(ms.status)")
