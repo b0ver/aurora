@@ -38,7 +38,6 @@ if [[ "${2:-}" == "install" ]]; then
   APPS="/Applications/$APP_NAME.app"
   echo "▸ Installing to $APPS…"
   rm -rf "$APPS"
-  cp -R "$DIST" "$APPS"
-  codesign --force --deep --sign - "$APPS" 2>/dev/null || true
+  cp -R "$DIST" "$APPS"   # exact copy → same code-signature/identity as dist (one TCC entry)
   echo "✓ Installed $APPS"
 fi

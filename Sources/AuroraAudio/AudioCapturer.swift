@@ -2,6 +2,7 @@ import Foundation
 import ScreenCaptureKit
 import CoreMedia
 import AVFoundation
+import CoreGraphics
 
 /// Captures **system audio** (loopback) via ScreenCaptureKit and delivers mono
 /// Float samples. Uses the same Screen Recording permission as screen capture.
@@ -14,8 +15,13 @@ final class AudioCapturer: NSObject, SCStreamOutput {
 
     func start() async throws {
         guard stream == nil else { return }
+        // System audio capture is gated by Screen Recording — request it explicitly.
+        guard CGPreflightScreenCaptureAccess() else {
+            _ = CGRequestScreenCaptureAccess()
+            throw AudioCaptureError.permissionDenied
+        }
         let content = try await SCShareableContent.current
-        guard let display = content.displays.first else { throw AudioCaptureError.noDisplay }
+        guard let display = content.displays.first else { throw AudioCaptureError.permissionDenied }
 
         let config = SCStreamConfiguration()
         config.capturesAudio = true
@@ -41,6 +47,7 @@ final class AudioCapturer: NSObject, SCStreamOutput {
     }
 
     static func isPermissionError(_ error: Error) -> Bool {
+        if case AudioCaptureError.permissionDenied = error { return true }
         let ns = error as NSError
         return ns.domain == SCStreamError.errorDomain && (ns.code == -3801 || ns.code == -3802)
     }
@@ -77,4 +84,4 @@ final class AudioCapturer: NSObject, SCStreamOutput {
     }
 }
 
-enum AudioCaptureError: Error { case noDisplay }
+enum AudioCaptureError: Error { case noDisplay, permissionDenied }

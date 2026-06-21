@@ -3,6 +3,7 @@ import AuroraCore
 import ScreenCaptureKit
 import CoreMedia
 import CoreVideo
+import CoreGraphics
 
 /// Captures the main display via ScreenCaptureKit, downscaled to a small grid for
 /// cheap edge sampling. Delivers `PixelGrid`s on a background queue.
@@ -15,8 +16,14 @@ final class ScreenCapturer: NSObject, SCStreamOutput {
 
     func start() async throws {
         guard stream == nil else { return }
+        // Explicit Screen Recording gate: if not already granted, fire the system
+        // prompt (takes effect after the next launch) and surface needsPermission.
+        guard CGPreflightScreenCaptureAccess() else {
+            _ = CGRequestScreenCaptureAccess()
+            throw CaptureError.permissionDenied
+        }
         let content = try await SCShareableContent.current
-        guard let display = content.displays.first else { throw CaptureError.noDisplay }
+        guard let display = content.displays.first else { throw CaptureError.permissionDenied }
 
         let height = max(1, Int((Double(targetWidth) * Double(display.height) / Double(display.width)).rounded()))
 
@@ -50,6 +57,7 @@ final class ScreenCapturer: NSObject, SCStreamOutput {
 
     /// True if the error is a Screen Recording permission denial.
     static func isPermissionError(_ error: Error) -> Bool {
+        if case CaptureError.permissionDenied = error { return true }
         let ns = error as NSError
         // SCStreamErrorDomain userDeclined == -3801; -3802 also permission-related.
         return ns.domain == SCStreamError.errorDomain && (ns.code == -3801 || ns.code == -3802)
@@ -79,4 +87,4 @@ final class ScreenCapturer: NSObject, SCStreamOutput {
     }
 }
 
-enum CaptureError: Error { case noDisplay }
+enum CaptureError: Error { case noDisplay, permissionDenied }
