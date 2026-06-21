@@ -43,7 +43,11 @@ final class AuroraModel: ObservableObject {
         }
     }
     @Published var installationMethod: InstallationMethod {
-        didSet { screenSync.updateLayout(previewLayout); persist() }
+        didSet {
+            screenSync.updateLayout(previewLayout)
+            musicSync.updateLayout(previewLayout)
+            persist()
+        }
     }
     @Published var screenSyncSubMode: ScreenSyncSubMode {
         didSet { screenSync.subMode = screenSyncSubMode; persist() }
@@ -99,7 +103,7 @@ final class AuroraModel: ObservableObject {
 
         let musicModeStart = saved?.musicMode ?? .spectrum
         let musicSens = saved?.musicSensitivity ?? 1.0
-        let ms = MusicSyncController(mode: musicModeStart, sensitivity: musicSens)
+        let ms = MusicSyncController(spatialLayout: spatial, mode: musicModeStart, sensitivity: musicSens)
         self.musicSync = ms
 
         let startMode = saved?.mode ?? .circadian
@@ -110,7 +114,7 @@ final class AuroraModel: ObservableObject {
 
         let circadianProvider = AuroraModel.circadianProvider(settings: settings, gamma: gamma)
         let screenProvider: @Sendable (Date, LEDLayout) -> [RGB] = { _, _ in ss.currentFrame() }
-        let musicProvider: @Sendable (Date, LEDLayout) -> [RGB] = { _, layout in ms.currentFrame(layout) }
+        let musicProvider: @Sendable (Date, LEDLayout) -> [RGB] = { _, _ in ms.currentFrame() }
         let staticGamma = staticColorStart.gammaCorrected(gamma)
         let staticProviderFn: @Sendable (Date, LEDLayout) -> [RGB] = { _, layout in
             Array(repeating: staticGamma, count: layout.count)
