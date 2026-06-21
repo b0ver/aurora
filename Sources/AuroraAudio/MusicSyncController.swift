@@ -23,6 +23,7 @@ public final class MusicSyncController: ObservableObject, @unchecked Sendable {
     private var ring: [Float]
     private var _mode: MusicMode
     private var _sensitivity: Double
+    private var _layout: LEDLayout   // install-corrected spatial layout
 
     // Render-queue-only state.
     private var smoothed: [Float]
@@ -30,11 +31,12 @@ public final class MusicSyncController: ObservableObject, @unchecked Sendable {
     private var slowEnergy: Float = 0
     private var beatEnv: Double = 0
 
-    public init(mode: MusicMode = .spectrum, sensitivity: Double = 1.0) {
+    public init(spatialLayout: LEDLayout, mode: MusicMode = .spectrum, sensitivity: Double = 1.0) {
         ring = [Float](repeating: 0, count: fftSize)
         smoothed = [Float](repeating: 0, count: bandCount)
         _mode = mode
         _sensitivity = sensitivity
+        _layout = spatialLayout
         capturer.onSamples = { [weak self] s in self?.ingest(s) }
     }
 
@@ -46,6 +48,11 @@ public final class MusicSyncController: ObservableObject, @unchecked Sendable {
     public var sensitivity: Double {
         get { lock.lock(); defer { lock.unlock() }; return _sensitivity }
         set { lock.lock(); _sensitivity = newValue; lock.unlock() }
+    }
+
+    /// Update the spatial layout (e.g. when the installation direction changes).
+    public func updateLayout(_ layout: LEDLayout) {
+        lock.lock(); _layout = layout; lock.unlock()
     }
 
     // MARK: Lifecycle
@@ -79,11 +86,12 @@ public final class MusicSyncController: ObservableObject, @unchecked Sendable {
 
     // MARK: Frame (render queue)
 
-    public func currentFrame(_ layout: LEDLayout) -> [RGB] {
+    public func currentFrame() -> [RGB] {
         lock.lock()
         let samples = ring
         let mode = _mode
         let gain = Float(_sensitivity)
+        let layout = _layout
         lock.unlock()
 
         let mags = analyzer.magnitudes(samples)
@@ -111,29 +119,34 @@ public final class MusicSyncController: ObservableObject, @unchecked Sendable {
     // MARK: Rendering
 
     private func renderFrame(mode: MusicMode, layout: LEDLayout, energy: Double) -> [RGB] {
-        let count = layout.count
+        let pts = layout.points
+        let count = pts.count
         guard count > 0 else { return [] }
+        let maxX = Double(max(layout.screenWidth - 1, 1))
+        let maxY = Double(max(layout.screenHeight - 1, 1))
 
         switch mode {
         case .spectrum:
-            return (0..<count).map { i in
-                let band = min(bandCount - 1, i * bandCount / count)
+            // Map by horizontal position: bass on the left → treble on the right.
+            return pts.map { p in
+                let nx = Double(p.x) / maxX
+                let band = min(bandCount - 1, max(0, Int(nx * Double(bandCount))))
                 let mag = Double(smoothed[band])
-                let hue = Double(band) / Double(bandCount) * 0.8   // red→violet
-                return RGB.hsv(hue, 1, min(1, mag))
+                return RGB.hsv(nx * 0.8, 1, min(1, mag))
             }
 
         case .pulse:
             huePhase += 0.0015 + beatEnv * 0.04
             let v = min(1, energy * 1.4 + beatEnv * 0.5)
-            let color = RGB.hsv(huePhase, 1, v)
-            return Array(repeating: color, count: count)
+            return Array(repeating: RGB.hsv(huePhase, 1, v), count: count)
 
         case .level:
-            let lit = Int((min(1, energy * 1.6)) * Double(count))
-            return (0..<count).map { i in
-                guard i < lit else { return .black }
-                let hue = 0.33 - (Double(i) / Double(count)) * 0.33   // green→red
+            // VU meter that rises from the bottom of the screen to the top.
+            let level = min(1, energy * 1.6)
+            return pts.map { p in
+                let fromBottom = 1.0 - Double(p.y) / maxY   // 0 at bottom (y=max), 1 at top
+                guard fromBottom <= level else { return .black }
+                let hue = 0.33 * (1 - fromBottom)           // green low → red near the top
                 return RGB.hsv(hue, 1, 1)
             }
 
@@ -141,8 +154,7 @@ public final class MusicSyncController: ObservableObject, @unchecked Sendable {
             huePhase += 0.0008 + energy * 0.01
             let sat = 0.55 + 0.45 * min(1, energy * 2)
             let v = 0.35 + 0.65 * min(1, energy * 1.6)
-            let color = RGB.hsv(huePhase, sat, v)
-            return Array(repeating: color, count: count)
+            return Array(repeating: RGB.hsv(huePhase, sat, v), count: count)
         }
     }
 
