@@ -43,7 +43,7 @@ Aurora is built around fixing these, with UX/UI as a first-class requirement.
 - Cloud accounts, social features, ads (the original bundles an ad manager — we
   deliberately omit it).
 - Supporting every one of the 1000+ third-party RGB brands the original claims;
-  we target Skydimo controllers (configs in `docs/reference/`).
+  we target Skydimo controllers (model table embedded in `ControllerCatalog`).
 
 ## 5. Modes (functional requirements)
 

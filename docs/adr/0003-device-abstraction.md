@@ -34,7 +34,7 @@ Backends:
   hardware.
 
 LED layouts are loaded from the **vendor `controller_config` JSON** (already
-extracted to `docs/reference/controller-configs/`): `key_num` (LED count),
+read from the controller): `key_num` (LED count),
 `ledMap` (grid coords), `key_music` (channel split), `screenWidth/Height`.
 
 ## Consequences

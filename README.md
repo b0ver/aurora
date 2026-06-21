@@ -1,82 +1,121 @@
+<div align="center">
+
+<img src="docs/images/hero.svg" alt="Aurora — ambient lighting for macOS" width="820">
+
 # Aurora
 
-Ambient lighting for macOS — drive Skydimo-compatible USB LED controllers with
-**screen sync**, **music sync**, and a flagship **circadian rhythm** mode, all
-switchable from the **menu bar**.
+**Native macOS ambient lighting for Skydimo-compatible LED strips —
+circadian, screen sync & music sync, all switchable from your menu bar.**
 
-Aurora is an independent, native macOS reimplementation inspired by the Skydimo
-desktop app, built for people who want a faster, cleaner, menu-bar-first
-experience and modes the original lacks (notably f.lux-style circadian lighting).
+[![Platform](https://img.shields.io/badge/platform-macOS%2014%2B-black?logo=apple)](https://www.apple.com/macos/)
+[![Swift](https://img.shields.io/badge/Swift-6-orange?logo=swift)](https://www.swift.org)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/b0ver/aurora?include_prereleases)](https://github.com/b0ver/aurora/releases)
+[![Stars](https://img.shields.io/github/stars/b0ver/aurora?style=social)](https://github.com/b0ver/aurora/stargazers)
 
-> Status: **all four modes working** (M0–M5 core) on real hardware
-> (Skydimo **SK0127**, 65 LEDs, USB-serial). See [docs/ROADMAP.md](docs/ROADMAP.md).
+</div>
 
-## Why Aurora
+---
 
-The original Skydimo app does screen/music sync well but:
-- has no **mode switching from the menu bar** — you must open the full window;
-- has **no circadian mode** (cool light by day, warm + dim as it gets dark).
+Aurora is an independent, native reimagining of the Skydimo desktop app for the
+people who want their bias lighting to be *ambient automation*: a flux-style
+circadian glow by day and night, faithful screen-edge sync for movies and games,
+audio-reactive lighting for music — and the one thing the original never had,
+**mode switching right from the menu bar**.
 
-Aurora fixes both and puts UX/UI first.
+It drives the same USB-serial controllers as the official app (reverse-engineered
+for interoperability), runs as a lightweight menu-bar agent, and is built
+entirely in Swift 6 / SwiftUI.
 
-## Modes
+## ✨ Modes
 
-| Mode | What it does | Status |
+| | Mode | What it does |
 |---|---|---|
-| 🌅 Circadian | Color temperature follows your local sun cycle (f.lux-style), with Auto/Day/Night override, a 24h schedule graph + time scrubber, and gamma-corrected warm tones | ✅ |
-| 🖥️ Screen Sync | Mirrors screen-edge colors to the LEDs (ScreenCaptureKit), with Full/Cinema/Top/Bottom/Left/Right regions + saturation | ✅ |
-| 🎵 Music Sync | vDSP FFT of system audio drives the LEDs — Spectrum / Pulse / Level / Mood, with sensitivity + beat detection | ✅ |
-| 🎨 Static / Scene | Custom color picker + 12 presets | ✅ |
+| 🌅 | **Circadian** | Color temperature tracks your local sun cycle (f.lux-style): cool by day, warm + dim at night. Auto / Day / Night override, a live 24-hour schedule graph with a time scrubber, and gamma-corrected warm tones so amber looks like amber. |
+| 🖥️ | **Screen Sync** | Mirrors the colors at the edges of your screen onto the strip via `ScreenCaptureKit`. Regions: Full · Cinema (letterbox-aware) · Top · Bottom · Left · Right, plus a saturation control. |
+| 🎵 | **Music Sync** | Audio-reactive lighting from your **system audio** (no virtual device): `vDSP` FFT spectrum → Spectrum · Pulse · Level (VU) · Mood, with sensitivity and beat detection. |
+| 🎨 | **Scene** | A steady color across the strip — custom color picker + 12 presets. |
 
-Plus: **menu-bar mode switching**, installation-direction setup, launch-at-login,
-and a live on-screen LED preview. Screen Sync and Music Sync request **Screen
-Recording** permission on first use (the latter uses it for system-audio loopback).
+Plus: a one-click **menu-bar switcher**, an **installation-direction** setup
+(matches however your strip is wound around the screen), **launch-at-login**, and
+a live on-screen preview.
 
-## Tech stack
+## 🚀 Install
 
-- **Swift 6 / SwiftUI**, native macOS (`MenuBarExtra` for the tray switcher).
-- **ScreenCaptureKit** (screen), **AVAudioEngine + vDSP** (audio FFT).
-- **USB-serial** transport to the LED controller (`/dev/cu.*`), compatible with
-  Skydimo controllers — see [docs/protocol/](docs/protocol/).
-- Built with **Swift Package Manager** (no full Xcode required for dev). See
-  [ADR-0002](docs/adr/0002-build-system-spm.md).
+> macOS 14 (Sonoma) or later · a Skydimo-compatible USB-serial controller.
 
-## Build
+**Option A — download the app**
 
-Requires the Swift toolchain (Command Line Tools is enough for dev builds).
+1. Grab `Aurora-vX.Y.Z-macos.zip` from the [latest release](https://github.com/b0ver/aurora/releases).
+2. Unzip and move **Aurora.app** to `/Applications`.
+3. First launch: right-click → **Open** (the build is ad-hoc signed, so Gatekeeper
+   asks once).
+4. For **Screen Sync** / **Music Sync**, grant **Screen Recording** in
+   System Settings → Privacy & Security (Music Sync uses it for system audio),
+   then quit and reopen Aurora.
+
+**Option B — build from source**
 
 ```bash
-swift build                 # compile all modules
-swift run AuroraChecks      # run the logic check harness (see ADR-0002)
-swift run AuroraApp         # run (dev)
-./Scripts/package_app.sh            # produce dist/Aurora.app (menu-bar agent bundle)
-./Scripts/package_app.sh release install   # also install into /Applications
+git clone https://github.com/b0ver/aurora.git && cd aurora
+swift build                                 # compile
+swift run AuroraChecks                      # run the logic checks
+./Scripts/package_app.sh release install    # build + install into /Applications
 ```
 
-## Repository layout
+(Only the Swift toolchain is needed — full Xcode is not required.)
+
+## 🔌 Hardware
+
+Aurora talks to Skydimo USB-serial controllers (e.g. the `SK01xx` monitor
+light-strip family) over a CH340 bridge at 115200 baud. It auto-detects the
+controller, identifies the model and LED count via a handshake, and streams
+`Ada`-style frames. The protocol was reverse-engineered for interoperability —
+see [docs/protocol/](docs/protocol/).
+
+> Confirmed on real hardware: **SK0127, 65 LEDs**. Other `SK01xx`/`SK02xx`
+> models are mapped in `ControllerCatalog` and should work — reports welcome.
+
+## 🧠 How it works
+
+A small render engine runs a continuous background loop at a fixed FPS: the active
+mode produces a frame of per-LED colors, the engine applies brightness, and pushes
+it to the controller (and an on-screen preview).
 
 ```
-Aurora/
-├── docs/                 # PRD, architecture, ADRs, protocol RE, UX
-│   ├── PRD.md
-│   ├── ARCHITECTURE.md
-│   ├── ROADMAP.md
-│   ├── adr/              # architecture decision records
-│   ├── protocol/         # Skydimo serial protocol reverse-engineering
-│   └── reference/        # extracted controller LED-map configs
-├── Sources/              # Swift modules (see ARCHITECTURE.md)
-├── Tests/                # unit tests
-├── Scripts/              # build/packaging scripts
-└── SkyDimo.app/          # original vendor app (git-ignored reference only)
+ SwiftUI (MenuBarExtra + window)
+        │  observes / commands
+ LightEngine ── render loop ──► LEDController (USB-serial)
+        ▲ frame providers
+ Circadian · ScreenCapture · MusicFFT · Static
+        └─────────── AuroraCore (RGB · Kelvin · LEDLayout) ──┘
 ```
 
-## Contributing / workflow
+Built as focused Swift modules: `AuroraCore` (color/Kelvin/layout math),
+`AuroraDevice` (serial protocol + auto-detect), `AuroraCircadian` (solar position
+→ schedule), `AuroraCapture` (ScreenCaptureKit edge sampling), `AuroraAudio`
+(vDSP FFT), `AuroraEngine` (render loop), and `AuroraApp` (UI). See
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-Trunk-based-ish: `main` is releasable, work happens on `feat/*` branches merged
-via PR. See [docs/ROADMAP.md](docs/ROADMAP.md) for the milestone plan.
+## 🗺️ Roadmap
 
-## License & legal
+Done: circadian · screen sync · music sync · scene · menu-bar switcher ·
+installation setup · launch-at-login. Next: gradients & saved scenes,
+time-based automation, global hotkeys, multi-monitor, and a notarized build.
+Full plan in [docs/ROADMAP.md](docs/ROADMAP.md).
 
-Independent interoperability project for hardware the user owns. Not affiliated
-with or endorsed by Skydimo. Vendor binary under `SkyDimo.app/` is included
-locally as a reference only and is **not** committed to the repository.
+## 🤝 Contributing
+
+Issues and PRs welcome — especially reports from other Skydimo controller models.
+The codebase is small, modular, and documented (PRD, architecture, and ADRs live
+in [`docs/`](docs/)).
+
+## ⚖️ License & disclaimer
+
+[MIT](LICENSE). Aurora is an independent interoperability project and is **not**
+affiliated with, endorsed by, or built from Skydimo's source. "Skydimo" is used
+only to describe hardware compatibility.
+
+<div align="center">
+<sub>If Aurora makes your desk glow nicer, consider leaving a ⭐.</sub>
+</div>

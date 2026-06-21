@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" width="1200" height="420" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="aurora" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7C4DFF"/>
+      <stop offset="0.28" stop-color="#18A0FB"/>
+      <stop offset="0.52" stop-color="#1DE9B6"/>
+      <stop offset="0.74" stop-color="#FFD54F"/>
+      <stop offset="1" stop-color="#FF6E40"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="420" rx="24" fill="#0b0c10"/>
+  <!-- glowing LED strip framing the "screen" -->
+  <rect x="70" y="60" width="1060" height="300" rx="22" fill="#111319"
+        stroke="url(#aurora)" stroke-width="10"/>
+
+  <text x="600" y="205" text-anchor="middle" fill="#F4F5F7" font-size="96" font-weight="700"
+        letter-spacing="2">Aurora</text>
+  <text x="600" y="252" text-anchor="middle" fill="#9aa0a6" font-size="23" font-weight="400">
+    Ambient lighting for macOS — circadian, screen sync &amp; music, from your menu bar
+  </text>
+
+  <!-- mode chips -->
+  <g font-size="19" font-weight="500" text-anchor="middle">
+    <g>
+      <rect x="330" y="288" width="150" height="38" rx="19" fill="#1b1e26"/>
+      <text x="405" y="313" fill="#FFD54F">Circadian</text>
+    </g>
+    <g>
+      <rect x="492" y="288" width="135" height="38" rx="19" fill="#1b1e26"/>
+      <text x="559" y="313" fill="#18A0FB">Screen</text>
+    </g>
+    <g>
+      <rect x="639" y="288" width="125" height="38" rx="19" fill="#1b1e26"/>
+      <text x="701" y="313" fill="#1DE9B6">Music</text>
+    </g>
+    <g>
+      <rect x="776" y="288" width="125" height="38" rx="19" fill="#1b1e26"/>
+      <text x="838" y="313" fill="#FF6E40">Scene</text>
+    </g>
+  </g>
+</svg>

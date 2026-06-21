@@ -2,9 +2,8 @@ import Foundation
 
 /// Decodes a vendor `controler_config/SK****.json` file into an `LEDLayout`.
 ///
-/// The vendor configs (mirrored under `docs/reference/controller-configs/`) use
-/// either `ledMap` or `key_array` for the LED grid positions, plus `key_num`,
-/// `screenWidth`/`screenHeight` (or `key_wid`) metadata.
+/// The vendor configs use either `ledMap` or `key_array` for the LED grid
+/// positions, plus `key_num`, `screenWidth`/`screenHeight` (or `key_wid`) metadata.
 public struct ControllerConfig: Decodable {
     struct LED: Decodable {
         let id: Int

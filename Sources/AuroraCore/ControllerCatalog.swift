@@ -13,9 +13,9 @@ public struct ControllerInfo: Sendable, Equatable {
     }
 }
 
-/// Embedded catalog of Skydimo controller models → LED count + per-side layout,
-/// mirrored from the vendor `SKController.json` (kept in docs/reference). Embedded
-/// as code so detection works in the packaged app with no resource files.
+/// Embedded catalog of Skydimo controller models → LED count + per-side layout
+/// (factual data derived from the vendor app). Embedded as code so detection
+/// works in the packaged app with no resource files.
 public enum ControllerCatalog {
     public static let models: [String: (leds: Int, lines: [Int])] = [
         "SK0121": (51, [13, 25, 13]),
