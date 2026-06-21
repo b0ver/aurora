@@ -31,3 +31,14 @@ codesign --force --deep --sign - "$DIST" 2>/dev/null || \
 
 echo "✓ Built $DIST"
 echo "  Run with: open \"$DIST\""
+
+# Optional: install into /Applications for a stable location + TCC identity.
+#   ./Scripts/package_app.sh release install
+if [[ "${2:-}" == "install" ]]; then
+  APPS="/Applications/$APP_NAME.app"
+  echo "▸ Installing to $APPS…"
+  rm -rf "$APPS"
+  cp -R "$DIST" "$APPS"
+  codesign --force --deep --sign - "$APPS" 2>/dev/null || true
+  echo "✓ Installed $APPS"
+fi
