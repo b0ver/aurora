@@ -54,6 +54,10 @@ a live on-screen preview.
    System Settings → Privacy & Security (Music Sync uses it for system audio),
    then quit and reopen Aurora.
 
+Strip not detected, wrong colors, or mirrored effect? →
+**[Troubleshooting](docs/TROUBLESHOOTING.md)** (most issues are the official
+Skydimo app holding the USB port, a missing permission, or the install direction).
+
 **Option B — build from source**
 
 ```bash
@@ -73,8 +77,11 @@ controller, identifies the model and LED count via a handshake, and streams
 `Ada`-style frames. The protocol was reverse-engineered for interoperability —
 see [docs/protocol/](docs/protocol/).
 
-> Confirmed on real hardware: **SK0127, 65 LEDs**. Other `SK01xx`/`SK02xx`
-> models are mapped in `ControllerCatalog` and should work — reports welcome.
+> **Tested on:** SK0127 — Skydimo 27″ monitor strip, **65 LEDs** (handshake,
+> RGB channel order, all four modes, gamma, install direction). The 21/24/27/32/34″
+> 3- and 4-sided strips and the "A" series are auto-detected and expected to work.
+> Full model matrix: **[docs/COMPATIBILITY.md](docs/COMPATIBILITY.md)** ·
+> reports for other models welcome.
 
 ## 🧠 How it works
 

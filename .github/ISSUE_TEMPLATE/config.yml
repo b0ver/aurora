@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Troubleshooting guide
+    url: https://github.com/b0ver/aurora/blob/main/docs/TROUBLESHOOTING.md
+    about: Most issues (port busy, Screen Recording permission, install direction) are solved here first.
+  - name: Compatibility matrix
+    url: https://github.com/b0ver/aurora/blob/main/docs/COMPATIBILITY.md
+    about: Check whether your Skydimo controller model is supported.
