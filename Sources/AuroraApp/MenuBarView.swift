@@ -31,20 +31,20 @@ struct MenuBarView: View {
                 .labelsHidden()
             } else if model.mode == .screenSync {
                 Picker("Region", selection: $model.screenSyncSubMode) {
-                    ForEach(ScreenSyncSubMode.allCases, id: \.self) { Text($0.title).tag($0) }
+                    ForEach(ScreenSyncSubMode.allCases, id: \.self) {
+                        Image(systemName: $0.symbol).help($0.title).tag($0)
+                    }
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
             } else if model.mode == .musicSync {
                 Picker("Style", selection: $model.musicMode) {
-                    ForEach(MusicMode.allCases, id: \.self) { Text($0.title).tag($0) }
+                    ForEach(MusicMode.allCases, id: \.self) {
+                        Image(systemName: $0.symbol).help($0.title).tag($0)
+                    }
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
-            } else if !model.mode.isImplemented {
-                Label("Coming soon", systemImage: "hammer")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
 
             LEDStripView(frame: model.lastFrame)
@@ -65,7 +65,7 @@ struct MenuBarView: View {
                 .foregroundStyle(.secondary)
         }
         .padding(14)
-        .frame(width: 300)
+        .frame(width: 320)
     }
 
     private var header: some View {
